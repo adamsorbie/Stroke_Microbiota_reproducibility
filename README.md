@@ -12,5 +12,5 @@ Here we provide two pipeline scripts to process 16S microbiota data. To reach a 
 For the R version the following dependencies must be installed: 
 
 FastTree
-Muscle 
+MAFFT 
 
