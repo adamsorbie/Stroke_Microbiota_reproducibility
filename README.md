@@ -14,3 +14,6 @@ For the R version the following dependencies must be installed and available in 
 FastTree
 MAFFT 
 
+### Installation 
+
+Although this analysis pipeline can in theory be ran on Windows 10, it works better on unix-based systems. If you are a Windows user, we recommend installing the Windows subystem for Linux. 
