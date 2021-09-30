@@ -22,8 +22,21 @@ qiime dada2 denoise-paired \
   --i-demultiplexed-seqs demux.qza \
   --p-trunc-len-f $trunc_f \
   --p-trunc-len-r $trunc_r \
-
+  --p-max-ee-f $maxEE_f
+  --p-max-ee-r $maxEE_r
+  --p-trunc-q 3
+  --p-chimera-method 'consensus'
+  --p-n-reads-learn 100000000
   --o-table table.qza \
   --o-representative-sequences rep-seqs.qza \
   --o-denoising-stats denoising-stats.qza
+
+
+## Write out abundance table and filter by 0.25% 
+
+
+
+
+## Taxonomy assignment 
+
 

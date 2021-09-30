@@ -1,0 +1,21 @@
+---
+title: "basic_analysis"
+author: "Adam Sorbie"
+date: "30/09/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Analysis of Microbiota data
+
+This document contains code to analyse the microbiota data generated in 
+Sorbie, Jimenez and Benakis 2021 and is intended to act as template for other
+stroke researchers to conduct their own analyses. 
+
+```{r}
+
+```
+
