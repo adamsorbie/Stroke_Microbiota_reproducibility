@@ -31,6 +31,7 @@ if that doesn't work then you may need to install git first, you can do this by 
 
 ```
 sudo apt update
+sudo apt upgrade
 ```
 
 followed by:
@@ -48,12 +49,35 @@ For the R version the following dependencies must be installed and available in 
 FastTree
 MAFFT 
 
-They can be installed like so: 
+FASTQC
+MultiQC
+
+The first two can be installed like so: 
 
 ```
 sudo apt install fasttree
 sudo apt install mafft
 ```
+
+The second two are a little more complicated and require a working conda installation first: 
+
+First download the conda installer
+```
+wget https://repo.anaconda.com/miniconda/Miniconda3-py38_4.10.3-Linux-x86_64.sh
+```
+
+Run this like so and follow the on-screen instructions: 
+```
+bash Miniconda3-py38_4.10.3-Linux-x86_64.sh
+```
+Restart the shell and finally install FASTQC and Multiqc: 
+
+```
+conda install -c bioconda fastqc 
+conda install -c multiqc=
+```
+
+
 
 ### Running the analysis pipeline 
 
