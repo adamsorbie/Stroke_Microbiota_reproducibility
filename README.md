@@ -90,26 +90,25 @@ Here we provide a tutorial of the R-based and QIIME2 based pipelines.
 
 #### QC of FASTQ reads 
 
-Raw reads should be checked for any quality issues before any further processing. The script "qc.sh" can be used to run FASTQC/MultiQC, providing an overview of read quality and also the FIGARO tool from Zymo which suggests trimming and filtering parameters for DADA2 downstream. Unfortunately, reads with different lengths are not currently supported by FIGARO so if this is the case with your data, you will need to determine these parameters yourself. 
+Raw reads should be checked for any quality issues before any further processing. The script "qc.R" can be used to analyze read quality via DADA2. 
 
-The "qc.sh" script has the following __required__ flags: 
-    ```-a``` = Expected amplicon length - The length of the (merged) amplicon not including primers. Integer.
-    ```-f``` = Length of the forward primer (number of bases). Integer.
-    ```-r``` = Length of the reverse primer (number of bases). Integer.
+The "qc.R" script has the following __required__ flags: 
     ```-p``` = full path to read files. String
     ```-o``` = full path to output directory. If not existing will be created. String
-
-An optional ```-m ``` flag is also available. This sets the minium overlap between paired reads and is useful when the overlap between the forward and reverse reads is less than ~50. 
 
 Example used in our study.  
 
 ```
-bash qc.sh -a 291 -f 19 -r 20 -p ~/data_win/16S/iScience-review/data/fastq/ -o ~/data_win/16S/iScience-review/data/fastq/qc_out/
+Rscript dada2_qc.R -p ~/data_win/16S/iScience-review/data/fastq/ -o ~/data_win/16S/iScience-review/data/fastq/qc_out/
 ```
 
 Output: 
 
-![fastqc_per_base_sequence_quality_plot](https://user-images.githubusercontent.com/23216921/136770720-636ec9f8-9ccf-446b-9690-bcf434b402b8.png)
+![quality_profile_f](https://user-images.githubusercontent.com/23216921/137965016-32fb18a2-da10-4167-84bb-92045dd96675.jpg)
+
+![quality_profile_r](https://user-images.githubusercontent.com/23216921/137965029-660d5a34-30a9-4d1b-b8f5-4405e81c47a1.jpg)
+
+Quality is good in both the forward and reverse reads here but starts to drop slightly around 250bp on the forward and 220bp on the reverse.  
 
 #### Trimming adapter and primer sequences 
 
