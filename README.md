@@ -21,7 +21,7 @@ Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-L
 
 You will then be prompted to restart your computer. After booting up again, open the Microsoft store app and search for your preferred linux distribution, for example Ubuntu or Debian. 
 
-Once installed, open the terminal and provide a username and password. To download the analysis scripts, type or copy paste the following into your terminal:
+Once installed, open the terminal and provide a username and password. From here on out, all commands are entered into the __linux__ terminal/shell. To download the analysis scripts, type or copy paste the following into your terminal:
 
 ```
 git clone https://github.com/adamsorbie/Stroke_Microbiota_reproducibility.git
@@ -79,7 +79,7 @@ conda install -c multiqc=
 
 
 
-### Running the analysis pipeline 
+### Running the data-processing pipeline 
 
 Here we provide a tutorial of the R-based and QIIME2 based pipelines. 
 
@@ -101,6 +101,8 @@ Example used in our study.
 ```
 Rscript dada2_qc.R -p ~/data_win/16S/iScience-review/data/fastq/ -o ~/data_win/16S/iScience-review/data/fastq/qc_out/
 ```
+
+You will of course have to modify the input and output paths to where your files are located in the filesystem. 
 
 Output: 
 
@@ -194,7 +196,29 @@ An R script "run_dada2.R" is provided to automate each step in the process.
     ```-t``` = Number of threads to use in parallel. String (default: 2)
   
   
-
 ```
 Rscript run_dada2.R -p ~/data_win/16S/iScience-review/data/fastq/trimmed_primer/ -f 240 -r 220 -o ~/data_win/16S/iScience-review/data/dada2_out/ -n 2 -N 5 -t 6
 ```
+
+This should create a folder called dada2_out (or whatever you chose to name) which contains the results. In the folder you should find the following files: 
+
+* "aligned.fasta" - Aligned ASV sequences (used as input to generate tree)
+* "ASV_seqs.fasta" - Unique sequences for each ASV 
+* "ASV_seqtab.tab" - Feature count table
+* "ASV_seqtab_tax.tab" - Feature count table with additional taxonomy column
+* "ASV_tree.tre" - Phylogenetic tree of ASVs in newick format
+* "error_plot_f.jpg/error_plot_r.jpg" - Plot of estimated error rates from dada2 "learnErrors" function 
+* "parameter_log.txt" - log of input parameters, i.e. commands provided to run_dada2.R
+* "sequence_len_distr.png" - plot of the sequence length distribution 
+* "study_stats.txt" - Filtering and merging statistics 
+
+Before proceeding with the results it's important to take a look at some of these files to check everything went ok with the pipeline: 
+
+The ```study_stats.txt``` is one of the most important. In any case, and indeed at any step, the majority of reads should be retained. You can check the percentage of reads which made it through the entire pipeline in the "percent_reads_retained" column. Generally, around 60% is good and indicates that these steps likely worked correctly. As we implement an additional filtering step based on the findings from [Reitmeier et al 2021, ISME Communications](https://www.nature.com/articles/s43705-021-00033-z?utm_source=feedburner&utm_medium=feed&utm_campaign=Feed%3A+ismecomms%2Frss%2Fcurrent+%28ISME+Communications+-+Latest%29) where only ASVs with a relative abundance of greater than 0.25% are retained. 
+
+Users should additionally check the error rate plots: in which the black line should fit fairly well with the black points, the sequence length distribution plot: which should generally show one peak and finally the feature table with taxonomy. If many taxa are unclassified and your samples were not from an uncommonly profiled environment, then this may indicate that an error occured with taxonomic classification. 
+
+Provided everything looks ok, we can proceed with the analysis of the resulting data. 
+
+### Data-Analysis 
+
