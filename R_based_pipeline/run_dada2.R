@@ -1,8 +1,8 @@
 #!/usr/bin/env Rscript
 
 #' Author: Adam Sorbie 
-#' Date: 17/09/21
-#' Version: 1.0.3
+#' Date: 25/10/21
+#' Version: 1.0.4
 
 
 ### LIBRARIES 
@@ -158,11 +158,8 @@ names(derepFs) <- sample.names
 names(derepRs) <- sample.names
 
 # remove filtered reads to reduce disk space 
-if (checkOS() == "unix"){
-  system("rm -rf filtered || true")
-} else if (checkOS() == "windows") {
-  system("if exists filtered rmdir /q /s filtered")
-}
+system("if exists filtered rmdir /q /s filtered")
+
 
 # run dada2 algorithm 
 dadaFs <- dada(derepFs, err=errF, multithread = opt$threads)
@@ -219,7 +216,7 @@ if (opt$int_quality_control == TRUE){
   seq_len_df <- data.frame(seq_length_distr)
   p <- ggpubr::ggbarplot(seq_len_df, x="Var1", y="Freq")
   p <- p + rotate_x_text(angle=45)
-  ggsave(paste(opt$out, "sequence_len_dist.png", sep=""), p, device = "png")
+  ggsave(paste(opt$out, "sequence_len_distr.png", sep=""), p, device = "png")
   # write out study stats
   write.table(qc_list$Stats, paste(opt$out, "study_stats.txt", sep=""), 
               sep="\t", col.names = NA)

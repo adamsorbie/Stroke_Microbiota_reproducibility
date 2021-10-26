@@ -16,6 +16,9 @@ fi
 cd qiime2_pipeline || exit
 
 # run cutadapt 
+qiime cutadapt trim-paired \
+  --i-demultiplexed-sequences demux-paired-end.qza
+
 
 
 qiime dada2 denoise-paired \
@@ -34,6 +37,12 @@ qiime dada2 denoise-paired \
 
 ## Write out abundance table and filter by 0.25% 
 
+qiime tools export table.qza --output-dir .
+biom convert -i feature-table.biom -o feature-table.tsv --to-tsv
+
+qiime tools export rep-seqs.qza --output-dir .
+
+## Re-import filtered table 
 
 
 

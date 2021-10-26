@@ -1,7 +1,7 @@
 #!/bin/bash
 # Author: Adam Sorbie
-# Date: 30/04/2021
-# Version: 0.7.5
+# Date: 11/10/2021
+# Version: 0.8.5
  
 # default 
 min_overlap=20
@@ -17,7 +17,8 @@ do
     p) path=${OPTARG};;
     o) out=${OPTARG};;
     m) min_overlap=${OPTARG};;
-    *) echo "usage: $0 [-a] [-f] [-r] [-p] [-o]" >&2
+    t) threads=${OPTARG};;
+    *) echo "usage: $0 [-a] [-f] [-r] [-p] [-o] [-t]" >&2
        exit 1 ;;
   esac
 done
@@ -28,13 +29,9 @@ then
   exit
 fi
 
-
-# activate conda env with fastqc installed
-eval "$(conda shell.bash hook)"
-conda activate bioinfo
 outdir=$(echo ${out%/}) 
 
-fastqc -t 8 $path/*.fastq.gz -o $outdir
+fastqc -t $threads $path/*.fastq.gz -o $outdir
 
 multiqc $outdir -o ${outdir}/multiqc
 # FIGARO
