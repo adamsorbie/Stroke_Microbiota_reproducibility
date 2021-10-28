@@ -2,7 +2,7 @@
 title: "Microbiota_Analysis"
 author: "Adam Sorbie"
 date: "26/10/2021"
-output: html_document
+output: rmarkdown::github_document
 ---
 
 ```{r setup, include=FALSE}
