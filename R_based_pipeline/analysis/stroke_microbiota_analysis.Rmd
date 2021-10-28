@@ -85,7 +85,7 @@ for a more thorough explanation).
 Shannon effective diversity is calculated as the exponent of the Shannon index: 
 
 $$H = -\sum_{i=1}^{R} p_i ln(p_i)$$
-where *R* = richness, *p~i* is the relative abundance of species *i* and *ln* is
+where *R* = richness, *p~i~* is the relative abundance of species *i* and *ln* is
 the natural logarithm. 
 
 This metric accounts for both the abundance and evenness of taxa. 
@@ -165,7 +165,8 @@ plot_boxplot(df = alpha_div_meta, variable_col = "Group", value_col = "Faiths.PD
              ylab = "Faiths.PD", p_title = "Faith's PD Stroke vs Sham", 
              col_palette = colours, group.order = c("Sham", "Stroke")) 
 ```
-Statistical signficiance is calculated internally in the ```plot_boxplot```
+
+Statistical significance is calculated internally in the ```plot_boxplot```
 function using unpaired wilcoxon, thus currently this function is only
 suitable when groups are independent. Note that if no significance is displayed 
 on the plot, the the differences between groups were not statistically 
@@ -214,7 +215,7 @@ return ggplot2 objects which can be added to and further customised as desired.
 
 Within this function statistical testing of group separation is also
 carried out using the adonis function of vegan. This function performs a Permutational
-Multivariate Analysis of Variance or PERMANOVA test. The resulting R^2 and p-value
+Multivariate Analysis of Variance or PERMANOVA test. The resulting R^2^ and p-value
 are added to the plot in the bottom left. 
 
 ```{r}
@@ -242,11 +243,11 @@ fold change of significant taxa from above and plots diverging dot plot coloured
 group, providing a clear figure showing which taxa change between conditions. 
 
 To this function, we need to provide the results of the ancom test above, 
-an ordered vector of the group levels e.g. ```c("Sham", "Strok")```. Additionally,
+an ordered vector of the group levels e.g. ```c("Sham", "Stroke")```. Additionally,
 we can provide the group colours to make interpretation easier. 
 
 ```{r}
-plot_da(res_ancom, groups = c("Sham", "Stroke"), cols=colours)
+p <- plot_da(res_ancom, groups = c("Sham", "Stroke"), cols=colours)
 ```
 
 

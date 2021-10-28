@@ -25,6 +25,8 @@ option_list <- list(
               help="output qc from dada2 run", action = "store"),
   make_option(c("-o", "--out"), type="character", default="dada2_out", 
               help="full path of output folder", action = "store"),
+  make_option(c("-l", "--library"), type="character", default="PE", 
+              help="paired (PE) or single end sequencing (SE)", action = "store"),
   make_option(c("-n", "--n_errorsF"), type="integer", default=2,
               help="expected errors for forward reads",
               action = "store"), 
@@ -97,6 +99,9 @@ setwd(path)
 
 dir.create(opt$out)
 
+if (opt$library == "PE"){
+  
+}
 maxE <- c(opt$n_errorsF, opt$n_errorsR)
 trunc_params <- c(opt$trunc_f, opt$trunc_r)
 
