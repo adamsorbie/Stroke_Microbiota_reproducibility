@@ -222,3 +222,6 @@ Provided everything looks ok, we can proceed with the analysis of the resulting 
 
 ### Data-Analysis 
 
+in addition to our data processing pipeline, we have included a set of R functions, which perform many common tasks (e.g. Data normalisation, calculation of alpha and beta diversity metrics). A tutorial on how to use these is provided [here](https://github.com/adamsorbie/Stroke_Microbiota_reproducibility/blob/main/R_based_pipeline/analysis/stroke_microbiota_analysis.md) to help users learn 16S data analysis or indeed analyse their own data. 
+
+ 
