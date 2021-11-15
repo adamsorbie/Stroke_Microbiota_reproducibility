@@ -1,8 +1,8 @@
 # Stroke_Microbiota_reproducibility
 Repository for Sorbie, Jimenez and Benakis, iScience submitted
 
-![](https://user-images.githubusercontent.com/23216921/141769492-48fb6c60-d466-4242-a270-ad910ed666fc.png | width=400)
-
+<img src=https://user-images.githubusercontent.com/23216921/141769492-48fb6c60-d466-4242-a270-ad910ed666fc.png" width="500" height="300">
+                                                                                                                                        
 Recently, the interplay between the microbiota and ischemic stroke is increasingly being recognised, however differences in methodology, study populations and data analysis have led to a lack of consistent findings between different studies. In our manuscript we aim to provide a framework to conduct stroke-microbiota studies in a rigorous and reproducible manner. This github repository accompanies the manuscript, providing code and a tutorial for processing and analysis of 16S sequencing data.  
 
 ## Data processing and Analysis 
