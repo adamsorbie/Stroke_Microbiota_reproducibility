@@ -92,7 +92,12 @@ Here we provide a tutorial of the R-based and QIIME2 based pipelines.
 #### Before starting 
 
 * Ensure reads are named according to illumina naming format: https://support.illumina.com/help/BaseSpace_OLH_009008/Content/Source/Informatics/BS/NamingConvention_FASTQ-files-swBS.htm. If your filenames do not follow this convention, the script "rename_seqs_illumina_format.sh" is provided to do this for you. 
-* 
+* Note that this script uses positional instead of named arguments. 
+To run: ```bash rename_seqs_illumina_format.sh "-" 3 R1.fastq R2.fastq ~/data_win/16S/iScience-review/data/fastq```
+
+The first argument is the delimeter separating sample name from the rest of the file name while the number represents the last field to split. Then we have the consistent pattern in the forward and reverse reads, usually R1* and R2* and finally the path where the files are located. Note that this script assumes your files are gzipped. 
+
+Using this naming scheme as an example ```Sample1-Mouse-Stool-illumina-R1.fastq.gz```, running the above script would yield ```Sample1-Mouse-Stool_S1_L001_R1_001.fastq.gz```
 
 #### QC of FASTQ reads 
 
