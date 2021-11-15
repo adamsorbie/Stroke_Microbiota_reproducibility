@@ -1,5 +1,5 @@
 # Stroke_Microbiota_reproducibility
-Repository for Sorbie, Jimenez and Benakis, iScience 2021 
+Repository for Sorbie, Jimenez and Benakis, iScience submitted
 
 
 ## Data processing and Analysis 
