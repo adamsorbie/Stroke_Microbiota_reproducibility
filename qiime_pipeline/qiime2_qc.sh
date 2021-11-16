@@ -5,6 +5,20 @@
 # Version: 0.0.1 
 
 # This script assumes you have installed the latest version of QIIME2 and activated your conda environment 
+while getopts g:G:m:M:p: flag
+ do
+   case "${flag}" in
+     g) f_primer=${OPTARG};;
+     G) r_primer=${OPTARG};;
+     m) min_len=${OPTARG};;
+     f) trunc_f=${OPTARG};;
+     r) trunc_r=${OPTARG};;
+     n) maxEE_f=${OPTARG};;
+     N) maxEE_r=${OPTARG};;
+     *) echo "usage: $0 [-g] [-G] [-m] [-f] [-r] [-n] [-N]" >&2
+        exit 1 ;;
+   esac
+done
 
 # check qiime2 environment activated and exit if not 
 env=$CONDA_DEFAULT_ENV

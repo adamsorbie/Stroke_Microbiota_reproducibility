@@ -23,7 +23,7 @@ asvtab = pd.read_csv("feature-table.tsv")
 asvtab_filt, asv_filt_list = threshold_asvtab(asvtab)
 
 
-asvtab_filt.to_csv("")
+asvtab_filt.to_csv("feature-table-filt.tsv", sep="\t")
 
 
 
