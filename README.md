@@ -1,6 +1,12 @@
 # Stroke_Microbiota_reproducibility
-Repository for Sorbie, Jimenez and Benakis, iScience 2021 
+Repository for Sorbie, Jimenez and Benakis, iScience submitted
 
+<p>
+<img src="https://user-images.githubusercontent.com/23216921/141769492-48fb6c60-d466-4242-a270-ad910ed666fc.png" width="350" height="600">
+<em>Bi-directional interaction of the Microbiota and Stroke</em>
+</p>
+
+Recently, the interplay between the microbiota and ischemic stroke is increasingly being recognised, however differences in methodology, study populations and data analysis have led to a lack of consistent findings between different studies. In our manuscript we aim to provide a framework to conduct stroke-microbiota studies in a rigorous and reproducible manner. This github repository accompanies the manuscript, providing code and a tutorial for processing and analysis of 16S sequencing data.  
 
 ## Data processing and Analysis 
 
@@ -86,7 +92,12 @@ Here we provide a tutorial of the R-based and QIIME2 based pipelines.
 #### Before starting 
 
 * Ensure reads are named according to illumina naming format: https://support.illumina.com/help/BaseSpace_OLH_009008/Content/Source/Informatics/BS/NamingConvention_FASTQ-files-swBS.htm. If your filenames do not follow this convention, the script "rename_seqs_illumina_format.sh" is provided to do this for you. 
-* 
+* Note that this script uses positional instead of named arguments. 
+To run: ```bash rename_seqs_illumina_format.sh "-" 3 R1.fastq R2.fastq ~/data_win/16S/iScience-review/data/fastq```
+
+The first argument is the delimeter separating sample name from the rest of the file name while the number represents the last field to split. Then we have the consistent pattern in the forward and reverse reads, usually R1* and R2* and finally the path where the files are located. Note that this script assumes your files are gzipped. 
+
+Using this naming scheme as an example ```Sample1-Mouse-Stool-illumina-R1.fastq.gz```, running the above script would yield ```Sample1-Mouse-Stool_S1_L001_R1_001.fastq.gz```
 
 #### QC of FASTQ reads 
 
@@ -222,3 +233,6 @@ Provided everything looks ok, we can proceed with the analysis of the resulting 
 
 ### Data-Analysis 
 
+in addition to our data processing pipeline, we have included a set of R functions, which perform many common tasks (e.g. Data normalisation, calculation of alpha and beta diversity metrics). A tutorial on how to use these is provided [here](https://github.com/adamsorbie/Stroke_Microbiota_reproducibility/blob/main/R_based_pipeline/analysis/stroke_microbiota_analysis.md) to help users learn 16S data analysis or indeed analyse their own data. 
+
+ 

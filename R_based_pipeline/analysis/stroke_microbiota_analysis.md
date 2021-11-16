@@ -3,11 +3,29 @@ Microbiota\_Analysis
 Adam Sorbie
 26/10/2021
 
-## Analysis of Microbiota data
+# Analysis of Microbiota data
 
 This document contains code to analyse the microbiota data generated in
 Sorbie, Jimenez and Benakis 2021 and is intended to act as template for
 other stroke researchers to conduct their own analyses.
+
+## Set-up 
+
+To be able to perform these analyses you will first need to clone this repository and copy the ```analysis_functions.R``` script to your working directory/whichever directory  you prefer. You will also need a working installation of R and Rstudio to follow the tutorial below. 
+
+Upon sourcing, this script should automatically install all the required packages, however if not you can install them manually like so: 
+
+```
+cran_pkgs <- c("tidyverse", "ggpubr", "rstatix", "picante", "phangorn", "GUniFrac", "zoo", "BiocManager")
+bioC_pkgs <- c("phyloseq", "ANCOMBC") 
+
+install.packages(cran_pkgs)
+
+BiocManager::install(bioC_pkgs)
+```
+
+## Data Analysis 
+
 
 ``` r
 source("../../scripts/analysis_functions.R")
@@ -81,7 +99,7 @@ Here we will calculate three different measures of alpha-diversity:
 -   Shannon effective diversity, measuring
 -   Faith’s PD, measuring the phylogenetic component of alpha diversity
 
-The function `calc_alpa` wraps all of these calculations and only
+The function `calc_alpha` wraps all of these calculations and only
 requires the mss normalised phyloseq object as input, returning a
 dataframe with a column for each above-mentioned dataframe.
 
