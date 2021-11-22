@@ -11,7 +11,7 @@ other stroke researchers to conduct their own analyses.
 
 ## Set-up 
 
-To be able to perform these analyses you will first need to clone this repository (type ```git clone git@github.com:adamsorbie/Stroke_Microbiota_reproducibility.git``` and copy the ```analysis_functions.R``` script to your working directory/whichever directory  you prefer. You will also need a working installation of R and Rstudio to follow the tutorial below. 
+To be able to perform these analyses you will first need to clone this repository (type ```git clone git@github.com:adamsorbie/Stroke_Microbiota_reproducibility.git```) and copy the ```analysis_functions.R``` script to your working directory/whichever directory  you prefer. You will also need a working installation of R and Rstudio to follow the tutorial below. 
 
 Upon sourcing, this script should automatically install all the required packages, however if not you can install them manually like so: 
 
