@@ -1,8 +1,8 @@
 #!/bin/bash 
 
 # Author: Adam Sorbie
-# Date: 17/09/21
-# Version: 0.0.1 
+# Date: 25/11/21
+# Version: 0.5.1 
 
  while getopts g:G:m:M:p: flag
  do
@@ -57,16 +57,51 @@ qiime dada2 denoise-paired \
 qiime tools export table.qza --output-dir .
 biom convert -i feature-table.biom -o feature-table.tsv --to-tsv
 
-qiime tools export rep-seqs.qza --output-dir .
+qiime tools export --input-path rep-seqs.qza --output-path rep_seqs.fasta 
 
 # Filter 
 python filter_low_abundant.py
-bash filter_fasta.sh 
+bash filter_fasta.sh -i rep_seqs.fasta -p keep_asvs.tsv -o rep_seqs_filt.fasta
+# Re-convert to biom 
 
-## Re-import filtered table 
-qiime tools import 
+biom convert -i feature-table_filt.tsv -o feature-table_filt.biom --table-type="OTU table" --to-hdf5
+
+## Re-import filtered table and fasta file
+qiime tools import \
+  --input-path feature-table_filt.biom \
+  --type 'FeatureTable[Frequency]' \
+  --input-format BIOMV210Format \ 
+  --output-path feature-table_filt.qza
+
+qiime tools import \
+  --input-path rep_seqs_filt.fasta \
+  --output-path rep_seqs_filt.qza \
+  --type 'FeatureData[Sequence]'
 
 
 ## Taxonomy assignment 
+wget \
+  -O "silva-138-99-nb-classifier.qza" \
+  "https://data.qiime2.org/2021.11/common/silva-138-99-nb-classifier.qza"
 
 
+qiime feature-classifier classify-sklearn \
+  --i-reads rep_seqs_filt.qza \
+  --i-classifier silva-138-99-nb-classifier.qza \
+  --o-classification taxonomy.qza
+
+qiime metadata tabulate \
+  --m-input-file taxonomy.qza \
+  --o-visualization taxonomy.qzv
+
+qiime feature-table tabulate-seqs \
+  --i-data rep_seqs_filt.qza \
+  --o-visualization rep_seqs_filt.qzv
+
+## Tree generation 
+qiime phylogeny align-to-tree-mafft-fasttree \ 
+  --i-sequenes rep_seqs_filt.qza
+  --o-alignment rep_seqs_filt_aln.qza
+  --o-masked-alignment rep_seqs_filt_aln_mask.qza
+  --o-tree unrooted_tree.qza
+  --o-rooted-tree rooted_tree.qza

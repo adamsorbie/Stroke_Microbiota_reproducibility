@@ -1,8 +1,8 @@
 #!/bin/bash 
 
 # Author: Adam Sorbie
-# Date: 14/09/21
-# Version: 0.0.1 
+# Date: 25/11/21
+# Version: 0.5.1 
 
 # This script assumes you have installed the latest version of QIIME2 and activated your conda environment 
 while getopts g:G:m:M:p: flag
