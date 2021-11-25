@@ -1,0 +1,15 @@
+Microbiota\_Analysis
+================
+Adam Sorbie
+26/10/2021
+
+# Analysis of Microbiota data
+
+This document contains code to analyse the microbiota data generated in
+Sorbie, Jimenez and Benakis 2021 and is intended to act as template for
+other stroke researchers to conduct their own analyses.
+
+## Set-up 
+
+To be able to perform these analyses you will first need to clone this repository (type ```git clone git@github.com:adamsorbie/Stroke_Microbiota_reproducibility.git```). 
+You will also need a working installation of Qiime2 to follow this tutorial. 
