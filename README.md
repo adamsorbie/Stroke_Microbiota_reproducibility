@@ -6,6 +6,7 @@ Repository for Sorbie, Jimenez and Benakis, iScience submitted
 <figcaption>Bi-directional interaction of Microbiota and Stroke.</figcaption>
 </figure>
 
+
 Recently, the interplay between the microbiota and ischemic stroke is increasingly being recognised, however differences in methodology, study populations and data analysis have led to a lack of consistent findings between different studies. In our manuscript we aim to provide a framework to conduct stroke-microbiota studies in a rigorous and reproducible manner. This github repository accompanies the manuscript, providing code and a tutorial for processing and analysis of 16S sequencing data.  
 
 ## Data processing and Analysis 
