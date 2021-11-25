@@ -2,8 +2,8 @@
 Repository for Sorbie, Jimenez and Benakis, iScience submitted
 
 <p>
-<img src="https://user-images.githubusercontent.com/23216921/141769492-48fb6c60-d466-4242-a270-ad910ed666fc.png" width="350" height="600">
-<em>Bi-directional interaction of the Microbiota and Stroke</em>
+<img src="https://user-images.githubusercontent.com/23216921/141769492-48fb6c60-d466-4242-a270-ad910ed666fc.png" width="350" height="550">
+<em>Bi-directional interaction of Microbiota and Stroke</em>
 </p>
 
 Recently, the interplay between the microbiota and ischemic stroke is increasingly being recognised, however differences in methodology, study populations and data analysis have led to a lack of consistent findings between different studies. In our manuscript we aim to provide a framework to conduct stroke-microbiota studies in a rigorous and reproducible manner. This github repository accompanies the manuscript, providing code and a tutorial for processing and analysis of 16S sequencing data.  
@@ -235,4 +235,5 @@ Provided everything looks ok, we can proceed with the analysis of the resulting 
 
 in addition to our data processing pipeline, we have included a set of R functions, which perform many common tasks (e.g. Data normalisation, calculation of alpha and beta diversity metrics). A tutorial on how to use these is provided [here](https://github.com/adamsorbie/Stroke_Microbiota_reproducibility/blob/main/R_based_pipeline/analysis/stroke_microbiota_analysis.md) to help users learn 16S data analysis or indeed analyse their own data. 
 
+For those who prefer to use the Qiime2 based pipeline, the associated tutorial can be found [here](under construction) 
  
