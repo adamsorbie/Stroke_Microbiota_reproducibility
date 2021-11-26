@@ -2,20 +2,15 @@
 
 # Author: Adam Sorbie
 # Date: 25/11/21
-# Version: 0.5.1 
+# Version: 0.5.3 
 
 # This script assumes you have installed the latest version of QIIME2 and activated your conda environment 
-while getopts g:G:m:M:p: flag
+while getopts p:o: flag
  do
    case "${flag}" in
-     g) f_primer=${OPTARG};;
-     G) r_primer=${OPTARG};;
-     m) min_len=${OPTARG};;
-     f) trunc_f=${OPTARG};;
-     r) trunc_r=${OPTARG};;
-     n) maxEE_f=${OPTARG};;
-     N) maxEE_r=${OPTARG};;
-     *) echo "usage: $0 [-g] [-G] [-m] [-f] [-r] [-n] [-N]" >&2
+     p) path=${OPTARG};;
+     o) output=${OPTARG};; 
+     *) echo "usage: $0 [-p] [-o]" >&2
         exit 1 ;;
    esac
 done
@@ -27,8 +22,19 @@ if [[ $env != *"qiime2"* ]]; then
   exit
 fi
 
-mkdir qiime2_pipeline && cd "$_"
+mkdir -p $output
 
+# create manifest file if required 
+ls ${path}/*.gz | cut -f9 -d"/" > q2_manifest_sn
+ls ${path}/*.gz > q2_manifest_fp 
+paste -d, q2_manifest_sn q2_manifest_fp > q2_manifest_tmp.csv
+rm -rf q2_manifest_fp q2_manifest_sn 
+
+python create_manifest.py q2_manifest_tmp.csv ${output}/q2_manifest.csv 
+
+rm -rf q2_manifest_tmp.csv 
+
+cd $output || exit 
 # import fastq files 
 qiime tools import \
   --type 'SampleData[PairedEndSequencesWithQuality]' \
@@ -37,7 +43,7 @@ qiime tools import \
   --output-path demux-paired-end.qza
 
 qiime demux summarize \
-    --i-data demux-paired-end.qza \
-    --o-visualization ./demux-paired-end.qzv
+  --i-data demux-paired-end.qza \
+  --o-visualization demux-paired-end.qzv
 
 
