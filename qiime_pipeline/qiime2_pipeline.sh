@@ -4,9 +4,11 @@
 # Date: 25/11/21
 # Version: 0.5.1 
 
- while getopts g:G:m:M:p: flag
+
+ while getopts p:g:G:m:f:r:n:N flag
  do
    case "${flag}" in
+     p) path=${OPTARG};; 
      g) f_primer=${OPTARG};;
      G) r_primer=${OPTARG};;
      m) min_len=${OPTARG};;
@@ -14,7 +16,8 @@
      r) trunc_r=${OPTARG};;
      n) maxEE_f=${OPTARG};;
      N) maxEE_r=${OPTARG};;
-     *) echo "usage: $0 [-g] [-G] [-m] [-f] [-r] [-n] [-N]" >&2
+    
+     *) echo "usage: $0 [-p] [-g] [-G] [-m] [-f] [-r] [-n] [-N]" >&2
         exit 1 ;;
    esac
 done
@@ -28,7 +31,7 @@ if [[ $env != *"qiime2"* ]]; then
   exit
 fi
 
-cd qiime2_pipeline || exit
+cd $path || exit
 
 # run cutadapt 
 qiime cutadapt trim-paired \
@@ -36,10 +39,10 @@ qiime cutadapt trim-paired \
   --p-front-f $f_primer
   --p-front-r $r_primer
   --p-minimum-length $min_len
-
+  --o-trimmed-sequences demux-paired-end-trimmed.qza 
 
 qiime dada2 denoise-paired \
-  --i-demultiplexed-seqs demux.qza \
+  --i-demultiplexed-seqs demux-paired-end-trimmed.qza \
   --p-trunc-len-f $trunc_f \
   --p-trunc-len-r $trunc_r \
   --p-max-ee-f $maxEE_f
@@ -63,7 +66,6 @@ qiime tools export --input-path rep-seqs.qza --output-path rep_seqs.fasta
 python filter_low_abundant.py
 bash filter_fasta.sh -i rep_seqs.fasta -p keep_asvs.tsv -o rep_seqs_filt.fasta
 # Re-convert to biom 
-
 biom convert -i feature-table_filt.tsv -o feature-table_filt.biom --table-type="OTU table" --to-hdf5
 
 ## Re-import filtered table and fasta file
