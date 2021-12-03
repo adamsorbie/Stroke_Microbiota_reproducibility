@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import pandas as pd
 import numpy as np 
+import sys 
 
 def normalize(asvtab):
     sum_row = asvtab.sum()
@@ -27,7 +28,7 @@ asvtab_filt, asv_filt_list = threshold_asvtab(asvtab)
 asvtab_filt.to_csv("feature-table-filt.tsv", sep="\t")
 
 asv_filt_list_out = pd.DataFrame(asv_filt_list)
-asv_filt_list_out.to_csv('keep_asvs.tsv', index=False, sep="\t")
+asv_filt_list_out.to_csv("keep_asvs.tsv", index=False, sep="\t")
 
 
 

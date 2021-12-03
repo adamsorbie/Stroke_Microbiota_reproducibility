@@ -5,7 +5,7 @@
 # Version: 0.5.1 
 
 
- while getopts p:g:G:m:f:r:n:N flag
+ while getopts p:g:G:m:f:r:n:N: flag
  do
    case "${flag}" in
      p) path=${OPTARG};; 
@@ -14,9 +14,8 @@
      m) min_len=${OPTARG};;
      f) trunc_f=${OPTARG};;
      r) trunc_r=${OPTARG};;
-     n) maxEE_f=${OPTARG};;
-     N) maxEE_r=${OPTARG};;
-    
+     n) maxeeF=${OPTARG};;
+     N) maxeeR=${OPTARG};;
      *) echo "usage: $0 [-p] [-g] [-G] [-m] [-f] [-r] [-n] [-N]" >&2
         exit 1 ;;
    esac
@@ -30,26 +29,27 @@ if [[ $env != *"qiime2"* ]]; then
   echo "Please activate qiime2 environment"
   exit
 fi
-
+cp filter_low_abundant.py filter_fasta.sh ${path}
 cd $path || exit
 
 # run cutadapt 
 qiime cutadapt trim-paired \
-  --i-demultiplexed-sequences demux-paired-end.qza
-  --p-front-f $f_primer
-  --p-front-r $r_primer
-  --p-minimum-length $min_len
-  --o-trimmed-sequences demux-paired-end-trimmed.qza 
+  --i-demultiplexed-sequences demux-paired-end.qza \
+  --p-front-f $f_primer \
+  --p-front-r $r_primer \
+  --p-minimum-length $min_len \
+  --o-trimmed-sequences demux-paired-end-trimmed.qza
+
 
 qiime dada2 denoise-paired \
   --i-demultiplexed-seqs demux-paired-end-trimmed.qza \
   --p-trunc-len-f $trunc_f \
   --p-trunc-len-r $trunc_r \
-  --p-max-ee-f $maxEE_f
-  --p-max-ee-r $maxEE_r
-  --p-trunc-q 3
-  --p-chimera-method 'consensus'
-  --p-n-reads-learn 100000000
+  --p-max-ee-f $maxeeF \
+  --p-max-ee-r $maxeeR \
+  --p-trunc-q 3 \
+  --p-chimera-method 'consensus' \
+  --p-n-reads-learn 100000000 \
   --o-table table.qza \
   --o-representative-sequences rep-seqs.qza \
   --o-denoising-stats denoising-stats.qza
@@ -57,14 +57,16 @@ qiime dada2 denoise-paired \
 
 ## Write out abundance table and filter by 0.25% 
 
-qiime tools export table.qza --output-dir .
+qiime tools export --input-path table.qza --output-path .
 biom convert -i feature-table.biom -o feature-table.tsv --to-tsv
 
-qiime tools export --input-path rep-seqs.qza --output-path rep_seqs.fasta 
+qiime tools export --input-path rep-seqs.qza --output-path rep_seqs.fasta
 
 # Filter 
-python filter_low_abundant.py
+python filter_low_abundant.py   
 bash filter_fasta.sh -i rep_seqs.fasta -p keep_asvs.tsv -o rep_seqs_filt.fasta
+# remove copied scripts 
+rm -rf filter_low_abundant.py filter_fasta.sh 
 # Re-convert to biom 
 biom convert -i feature-table_filt.tsv -o feature-table_filt.biom --table-type="OTU table" --to-hdf5
 
@@ -72,7 +74,7 @@ biom convert -i feature-table_filt.tsv -o feature-table_filt.biom --table-type="
 qiime tools import \
   --input-path feature-table_filt.biom \
   --type 'FeatureTable[Frequency]' \
-  --input-format BIOMV210Format \ 
+  --input-format BIOMV210Format \
   --output-path feature-table_filt.qza
 
 qiime tools import \
@@ -101,9 +103,9 @@ qiime feature-table tabulate-seqs \
   --o-visualization rep_seqs_filt.qzv
 
 ## Tree generation 
-qiime phylogeny align-to-tree-mafft-fasttree \ 
-  --i-sequenes rep_seqs_filt.qza
-  --o-alignment rep_seqs_filt_aln.qza
-  --o-masked-alignment rep_seqs_filt_aln_mask.qza
-  --o-tree unrooted_tree.qza
+qiime phylogeny align-to-tree-mafft-fasttree \
+  --i-sequenes rep_seqs_filt.qza \
+  --o-alignment rep_seqs_filt_aln.qza \
+  --o-masked-alignment rep_seqs_filt_aln_mask.qza \
+  --o-tree unrooted_tree.qza \
   --o-rooted-tree rooted_tree.qza
