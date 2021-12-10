@@ -173,35 +173,56 @@ xyform <- function (y_var, x_vars) {
 plot_boxplot <- function(df, variable_col, value_col, 
                          fill_var="fill", comparisons_list, xlab, ylab, 
                          p_title=NULL, multiple_groups=FALSE, col_palette,
-                         group.order=NULL, ...){
+                         group.order=NULL, paired=FALSE, ...){
   # extend color palette with transparent value - required due to way we are 
   # layering plot 
   
   col_palette <- c(col_palette, "transparent")
   
   if (!is.null(group.order)){
-    print(group.order)
     df[, variable_col] <- factor(df[, variable_col], levels = group.order)
   }
   
   formula <- xyform(value_col, variable_col)
   
   if (multiple_groups == TRUE) {
-    stat_variance <- df %>% 
-      kruskal_test(formula)
-    stat_test <- df %>%  
-      pairwise_wilcox_test(formula, comparisons = comparisons_list,
-                           p.adjust.method = "BH") %>% 
-      add_significance() %>% 
-      add_xy_position(x = variable_col) %>% 
-      filter(p.adj < 0.05)
+    if (paired == TRUE){
+      stat_variance <- df %>% 
+        friedman_test(formula)
+      stat_test <- df %>%  
+        pairwise_wilcox_test(formula, comparisons = comparisons_list,
+                             p.adjust.method = "BH", paired=TRUE) %>% 
+        add_significance() %>% 
+        add_xy_position(x = variable_col) %>% 
+        filter(p.adj < 0.05)
+    }
+    else {
+      stat_variance <- df %>% 
+        kruskal_test(formula)
+      stat_test <- df %>%  
+        pairwise_wilcox_test(formula, comparisons = comparisons_list,
+                             p.adjust.method = "BH") %>% 
+        add_significance() %>% 
+        add_xy_position(x = variable_col) %>% 
+        filter(p.adj < 0.05)
+    }
   } 
   else if (multiple_groups == FALSE) {
-    stat_test <- df %>% 
-      wilcox_test(formula) %>% 
-      add_significance() %>% 
-      add_xy_position(x = variable_col) %>% 
-      filter(p < 0.05)
+    if (paired == TRUE){
+      stat_test <- df %>% 
+        wilcox_test(formula, paired=TRUE) %>% 
+        add_significance() %>% 
+        add_xy_position(x = variable_col) %>% 
+        filter(p < 0.05)
+    }
+    else {
+      stat_test <- df %>% 
+        wilcox_test(formula) %>% 
+        add_significance() %>% 
+        add_xy_position(x = variable_col) %>% 
+        filter(p < 0.05) 
+    }
+
   }
   
   # aes string accepts strings as column names, this code plots boxplot and adds error bars
@@ -234,9 +255,16 @@ plot_boxplot <- function(df, variable_col, value_col,
     plot_out <- final_plot
   }
   else {
-    plot_out <- final_plot +
-      stat_pvalue_manual(stat_test, label = "p.adj.signif", hide.ns = T,
-                         inherit.aes = FALSE, ...)
+    if (multiple_groups == T){
+      plot_out <- final_plot +
+        stat_pvalue_manual(stat_test, label = "p.adj.signif", hide.ns = T,
+                           inherit.aes = FALSE, ...)
+    }
+    else {
+      plot_out <- final_plot +
+        stat_pvalue_manual(stat_test, label = "p.signif", hide.ns = T,
+                           inherit.aes = FALSE, ...)
+    }
   }
   
   return(plot_out)
@@ -406,12 +434,12 @@ add_taxonomy_da <- function(ps, list_da_asvs, da_res) {
   return(da_tax_out)
 }
 
-ancom_da <- function(ps, group) {
+ancom_da <- function(ps, group, zero_thresh=0.9) {
   
   ps_f <- format_taxonomy(ps)
   
   res <- ancombc(phyloseq = ps_f, formula = group,p_adj_method = "BH", 
-                 zero_cut = 0.33, group = group, struc_zero = TRUE, 
+                 zero_cut = zero_thresh, group = group, struc_zero = TRUE, 
                  neg_lb = FALSE, tol = 1e-5, max_iter = 100, conserve = TRUE, 
                  alpha = 0.05, global = FALSE)
   
