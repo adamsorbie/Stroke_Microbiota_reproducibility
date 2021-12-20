@@ -15,3 +15,54 @@ To be able to perform these analyses you will first need to clone this repositor
 You will also need a working installation of Qiime2 to follow this tutorial. 
 
 Note that due to the recent release of Qiime2021.11 this pipeline in its current form likely will not work as intended. This is being fixed and will be updated asap. 
+
+## Data Processing 
+
+The Qiime2 processing pipeline mirrors that of the bash/R based pipeline, using the same tools under the Qiime2 wrapper. 
+
+To perform sample QC etc, we first run the bash script ```qiime2_qc.sh```, providing the path of fastq files and an output folder for the qiime2 artifact and visualization. 
+
+Note that if data is not in phred33 fastq format it must be converted before import. Qiime2 can do this internally, however it is extremely slow. If you are unsure whether your data are phred33 or phred64, you can ask your sequencing provider or alternatively, use vsearch to estimate the type. Vsearch is already installed within your qiime environment, thus you can just run the command ```vsearch --fastqchars``` on a single unzipped fastq file to check. e.g. 
+
+```
+vsearch --fastq_chars RD118_S1_L001_R1_001.fastq
+``` 
+
+If you need to convert to phred33 a bash script to perform this using the very fast bbmap package is provided. 
+
+First install bbmap: 
+
+```
+conda install -c bioconda bbmap
+```
+
+Then run the script ```convert_phred.sh``` like so, supplying the file path to your fastq files 
+
+```
+convert_phred.sh -p ~/data_win/16S/iScience-review/data/fastq
+```
+
+
+
+## Data Analysis 
+
+
+
+
+## Data Normalisation
+
+
+
+## Alpha Diversity
+
+
+### Plotting
+
+
+
+## Beta Diversity
+
+
+
+
+## Differentially abundant taxa
