@@ -1,5 +1,5 @@
 #!/bin/bash
-while getopts g:G:m:M:p: flag
+while getopts i:p:o: flag
  do
    case "${flag}" in
      i) input=${OPTARG};;

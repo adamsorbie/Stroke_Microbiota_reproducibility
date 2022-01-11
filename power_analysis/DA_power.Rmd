@@ -1,0 +1,120 @@
+---
+title: "Power_Analysis"
+author: "Adam Sorbie"
+date: "23/07/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Power Analysis for Microbiota studies 
+
+```{r}
+library(tidyverse)
+library(powmic)
+library(rMAGMA)
+Sys.setlocale('LC_ALL','C')
+```
+
+## Power calculation 
+
+This document contains code for the power analysis, associated with the manuscript:
+Sorbie, Jimenez & Benakis, iScience 2022. 
+
+To identify a suitable number of samples for our stroke microbiota study
+we will use the package ```powmic``` (Chen, Bioinformatics 2020). To estimate 
+parameters we will be using a similar dataset from Xu et al 2021, Gut. 
+
+We will be using a subset of the mouse data here, looking at the day3 timepoint in
+the colon as this is the closest to our own study design.  
+
+```{r}
+asv <- "../Xu_et_al_2021/data/longitudinal_cohort/ASV_seqtab.tab"
+meta <- "../Xu_et_al_2021/data/longitudinal_cohort/meta_longitudinal.tab"
+
+asvtab <- read_tsv(asv) %>% 
+  column_to_rownames(var="#ASVId")
+metadata <- read_tsv(meta) %>% 
+  column_to_rownames(var="#SampleID")
+```
+
+```{r}
+metadata_cn_d3 <- filter(metadata, Site == "Colon" & Timepoint == "3D")
+asvtab_cn_d3 <- asvtab %>% dplyr::select(all_of(rownames(metadata_cn_d3)))
+```
+
+
+```{r}
+nonzeros <- rowSums(asvtab_cn_d3 != 0)
+asvtab_cn_d3 <- asvtab_cn_d3[nonzeros > 5,]
+asvtab_mat <- as.matrix(asvtab_cn_d3)
+```
+
+Need to think about this a little bit here, 
+
+
+```{r}
+id <- match(colnames(asvtab_cn_d3),rownames(metadata_cn_d3))
+group <- metadata_cn_d3$Group[id]
+```
+
+```{r}
+data <- list()
+
+data$counts <- asvtab_mat
+data$designs <- numeric(length(group))
+data$designs[which(group=='MCAO')]=1
+
+d <- DGEList(counts=data$counts, group=data$designs)
+d <- calcNormFactors(d)
+d <- estimateCommonDisp(d)
+d <- estimateTagwiseDisp(d)
+fit <- exactTest(d)
+res <- topTags(fit, n=nrow(data$counts))
+res <- as.data.frame(res)
+proportion <- sum(res$FDR<0.1)/nrow(data$counts)
+proportion
+lfc <- res$logFC[res$FDR<0.1]
+hist(lfc)
+```
+
+```{r}
+modelselect.AIC(t(asvtab_cn_d3))
+```
+```{r}
+modelselect.vuong(t(asvtab_cn_d3))
+```
+
+```{r}
+params <- list()
+
+Sigma<- estSigma(t(asvtab_cn_d3),method='MAGMA',distrib='ZINB') #option for estimating microbial correlation structure
+params$Sigma <- Sigma
+
+out <- fit.ZINB(t(asvtab_cn_d3))
+params$otu.mat <- t(asvtab_cn_d3)
+params$mu <- out$mu
+params$phi <- out$phi
+params$p0 <- out$p0
+```
+
+```{r include=FALSE}
+lmu0 <- log(params$mu)
+lphi0 <- log(params$phi)
+logp0 <- log(params$p0)
+Sigma <- params$Sigma
+distrib <- 'ZINB'
+lfc.mu <- lfc
+params.sim <- setParams.ZINB(nTaxa=1000,p.DA=0.05,Sigma = Sigma, lmu0=lmu0,
+                             lphi0=lphi0,lp0 = logp0, lfc.mu=lfc)
+powmic.out <- powmic(n1s=c(6,8, 10, 12), n2s=c(6, 8, 10, 12),
+                  params=params.sim,distrib=distrib,nsims = 50)
+```
+
+```{r}
+assess.out <- assess(powmic.out, alpha.type='fdr',alpha.level=0.1,stratify.type='prevalence')
+sum.out <- summaryAssess(assess.out,assess.type='overall')
+```
+

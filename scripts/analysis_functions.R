@@ -434,7 +434,13 @@ add_taxonomy_da <- function(ps, list_da_asvs, da_res) {
   return(da_tax_out)
 }
 
-ancom_da <- function(ps, group, zero_thresh=0.9) {
+ancom_da <- function(ps, group, ord=NULL, zero_thresh=0.9) {
+  
+  if (!is.null(ord)){
+    group_levels <- levels(get_variable(ps, group))
+    sample_data(ps)[[group]] <- factor(group_levels, levels = ord)
+  }
+ 
   
   ps_f <- format_taxonomy(ps)
   

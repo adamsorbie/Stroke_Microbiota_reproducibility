@@ -65,7 +65,7 @@ RIGHT <- function(x,n){
 
 # filter abundance using relative abundance cutoff 
 filter_abundance <- function(asv_tab) {
-  # keeps ASVs which are above 0.25% rel abund in at least one sample 
+  # keeps ASVs which have a sum of 0.25% rel abund
   rel <- normalize(asv_tab)
   rel_filt <- rel[rowSums(rel) > 0.25, ]
   idx <- rownames(rel_filt)
