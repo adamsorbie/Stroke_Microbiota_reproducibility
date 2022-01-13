@@ -434,7 +434,7 @@ add_taxonomy_da <- function(ps, list_da_asvs, da_res) {
   return(da_tax_out)
 }
 
-ancom_da <- function(ps, group, ord=NULL, zero_thresh=0.9) {
+ancom_da <- function(ps, formula, group, ord=NULL, zero_thresh=0.9) {
   
   if (!is.null(ord)){
     group_levels <- levels(get_variable(ps, group))
@@ -444,7 +444,7 @@ ancom_da <- function(ps, group, ord=NULL, zero_thresh=0.9) {
   
   ps_f <- format_taxonomy(ps)
   
-  res <- ancombc(phyloseq = ps_f, formula = group,p_adj_method = "BH", 
+  res <- ancombc(phyloseq = ps_f, formula = formula, p_adj_method = "BH", 
                  zero_cut = zero_thresh, group = group, struc_zero = TRUE, 
                  neg_lb = FALSE, tol = 1e-5, max_iter = 100, conserve = TRUE, 
                  alpha = 0.05, global = FALSE)
