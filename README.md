@@ -1,5 +1,5 @@
 # Stroke_Microbiota_reproducibility
-Repository for Sorbie, Jimenez and Benakis, iScience submitted
+Code and data Repository for Sorbie, Jimenez and Benakis, iScience 2022: 10.1016/j.isci.2022.103998
 
 <figure>
 <img src="https://user-images.githubusercontent.com/23216921/141769492-48fb6c60-d466-4242-a270-ad910ed666fc.png" width="350" height="550">
