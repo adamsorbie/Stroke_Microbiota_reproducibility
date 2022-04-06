@@ -82,7 +82,7 @@ Restart the shell and finally install FASTQC and Multiqc:
 
 ```
 conda install -c bioconda fastqc 
-conda install -c multiqc=
+conda install -c multiqc
 ```
 
 
