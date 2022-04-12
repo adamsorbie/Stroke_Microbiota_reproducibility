@@ -14,6 +14,7 @@ Recently, the interplay between the microbiota and ischemic stroke is increasing
 
 Here we provide two pipeline scripts to process 16S microbiota data. To reach a wider audience, one is written in R and the other in shell/python via Qiime2 (currently in beta) so researchers can choose whichever they are most comfortable with. Note that the R pipeline runs significantly faster than the Qiime2 equivalent. Qiime2 tutorial can be found [here](https://github.com/adamsorbie/Stroke_Microbiota_reproducibility/blob/main/qiime_pipeline/Qiime2%20analysis%20tutorial) 
 
+Note: if you have zero experience of using the terminal/shell try my short intro course here: https://github.com/adamsorbie/unix_shell_course-2020-02-14. It should only take an hour or two and give you the skills you need to be able to conduct the analysis below. 
 
 ### Installation 
 
