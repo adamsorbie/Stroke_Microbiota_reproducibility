@@ -71,7 +71,7 @@ Note that compared to the R-based pipeline, the qiime2 pipeline runs very slow, 
 
 ## Data Analysis 
 
-UNDER CONSTRUCTION - We are currently working on implementing a tutorial on an analysis pipeline within Qiime2 to mirror that of the R-based pipeline. 
+UNDER CONSTRUCTION - We are currently working on implementing a tutorial on an analysis pipeline within Qiime2 to mirror that of the R-based pipeline. For now please use the Qiime2 tutorials available here: https://docs.qiime2.org/2022.2/tutorials/
 
 
 
