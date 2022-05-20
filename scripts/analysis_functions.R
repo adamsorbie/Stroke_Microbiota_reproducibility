@@ -148,15 +148,15 @@ transform <- function(ps, transform="mss") {
 phyloseq_adonis <- function(ps, dist_matrix, factor, ...) {
   
   
-  metadata_df <- meta_to_df(ps) 
+  meta_df <- meta_to_df(ps) 
   
-  if(sum(is.na(metadata_df[[factor]])) > 0){
+  if(sum(is.na(meta_df[[factor]])) > 0){
     print("metadata contains NAs, remove these samples with subset_samples
           before continuing")
     return (NULL)
   } else {
-    ps_ad <- adonis(dist_matrix ~ metadata_df[[factor]],
-                    data = metadata_df, ...)
+    ps_ad <- adonis(unname(dist_matrix) ~ meta_df[[factor]],
+                    data = meta_df, ...)
     return(ps_ad)
   }
 }
@@ -312,13 +312,13 @@ Faiths <- function(x, tree) {
 }
 
 # calculate richness
-Richness <- function(x) {
-  observed <- sum(x>0.5)
+Richness <- function(x, detection=0.5) {
+  observed <- sum(x>detection)
   return(observed)
 }
 
 # calculate all alpha diversity matrices and return dataframe 
-calc_alpha <- function(ps) {
+calc_alpha <- function(ps, ...) {
   mat_in <- ps_to_asvtab(ps) %>% 
     t()
   
@@ -328,7 +328,7 @@ calc_alpha <- function(ps) {
                         c("Richness", "Shannon.Effective", "Faiths.PD"))
   rownames(diversity) <- rownames(meta_to_df(ps))
   
-  diversity$Richness <- apply(mat_in, 1, Richness)
+  diversity$Richness <- apply(mat_in, 1, Richness, ...)
   diversity$Shannon.Effective <- apply(mat_in, 1, Shannon.E)
   diversity$Faiths.PD <- Faiths(mat_in, tree)
   
@@ -398,11 +398,16 @@ calc_betadiv <- function(ps, dist, ord_method="NMDS") {
 }
 
 plot_beta_div <- function(ps, ordination, dist_matrix, group_variable, add_ellipse=FALSE, cols) {
-  # add support for colors and elipses
+  # add support for colors and ellipses
   # significance
   ad <- phyloseq_adonis(ps, dist_matrix, group_variable)
   
-  
+  # check sample data dimensions >1 otherwise phyloseq 
+  # fails to colour samples due to bug:https://github.com/joey711/phyloseq/issues/541 
+  if (dim(sample_data(ps))[2] <2) {
+    # add repeat of first column as dummy 
+    sample_data(ps)[ , 2] <- sample_data(ps)[ ,1]
+  }
   plot <- plot_ordination(ps, ordination , color=group_variable)
   plot$layers[[1]] <- NULL
   
