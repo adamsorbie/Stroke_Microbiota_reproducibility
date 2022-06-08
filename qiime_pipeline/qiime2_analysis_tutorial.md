@@ -11,7 +11,8 @@ other stroke researchers to conduct their own analyses.
 
 ## Set-up 
 
-To be able to perform these analyses you will first need to clone this repository (type ```git clone git@github.com:adamsorbie/Stroke_Microbiota_reproducibility.git```). 
+To be able to perform these analyses you will first need to clone this repository: 
+(type ```git clone git@github.com:adamsorbie/Stroke_Microbiota_reproducibility.git```). 
 You will also need a working installation of Qiime2 to follow this tutorial. 
 
 Note that due to the recent release of Qiime2021.11 this pipeline in its current form likely will not work as intended. This is being fixed and will be updated asap. 
