@@ -1,5 +1,5 @@
-# Stroke_Microbiota_reproducibility
-Repository for Sorbie, Jimenez and Benakis, iScience submitted
+# Stroke Microbiota reproducibility
+
 
 <figure>
 <img src="https://user-images.githubusercontent.com/23216921/141769492-48fb6c60-d466-4242-a270-ad910ed666fc.png" width="350" height="550">
@@ -7,12 +7,14 @@ Repository for Sorbie, Jimenez and Benakis, iScience submitted
 </figure>
 
 
+This repository contains code, data and associated tutorials for Sorbie, Jimenez and Benakis, 2022, iScience: https://www.cell.com/iscience/fulltext/S2589-0042(22)00268-1
 Recently, the interplay between the microbiota and ischemic stroke is increasingly being recognised, however differences in methodology, study populations and data analysis have led to a lack of consistent findings between different studies. In our manuscript we aim to provide a framework to conduct stroke-microbiota studies in a rigorous and reproducible manner. This github repository accompanies the manuscript, providing code and a tutorial for processing and analysis of 16S sequencing data.  
 
 ## Data processing and Analysis 
 
 Here we provide two pipeline scripts to process 16S microbiota data. To reach a wider audience, one is written in R and the other in shell/python via Qiime2 (currently in beta) so researchers can choose whichever they are most comfortable with. Note that the R pipeline runs significantly faster than the Qiime2 equivalent. Qiime2 tutorial can be found [here](https://github.com/adamsorbie/Stroke_Microbiota_reproducibility/blob/main/qiime_pipeline/Qiime2%20analysis%20tutorial) 
 
+Note: if you have don't have any experience of using the terminal/shell try my short intro course here: https://github.com/adamsorbie/unix_shell_course-2020-02-14. It should only take an hour or two and give you the skills you need to be able to conduct the analysis below. 
 
 ### Installation 
 
@@ -81,7 +83,7 @@ Restart the shell and finally install FASTQC and Multiqc:
 
 ```
 conda install -c bioconda fastqc 
-conda install -c multiqc=
+conda install -c multiqc
 ```
 
 
