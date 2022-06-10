@@ -34,31 +34,30 @@ cp filter_low_abundant.py filter_fasta.sh ${path}
 cd $path || exit
 
 # run cutadapt 
-# qiime cutadapt trim-paired \
-#   --i-demultiplexed-sequences demux-paired-end.qza \
-#   --p-front-f $f_primer \
-#   --p-front-r $r_primer \
-#   --p-minimum-length $min_len \
-#   --o-trimmed-sequences demux-paired-end-trimmed.qza \
-#   --p-cores $threads \
-#   --verbose
+qiime cutadapt trim-paired \
+   --i-demultiplexed-sequences demux-paired-end.qza \
+   --p-front-f $f_primer \
+   --p-front-r $r_primer \
+   --p-minimum-length $min_len \
+   --o-trimmed-sequences demux-paired-end-trimmed.qza \
+   --p-cores $threads \
+   --verbose
 
 
-# qiime dada2 denoise-paired \
-#   --i-demultiplexed-seqs demux-paired-end-trimmed.qza \
-#   --p-trunc-len-f $trunc_f \
-#   --p-trunc-len-r $trunc_r \
-#   --p-max-ee-f $maxeeF \
-#   --p-max-ee-r $maxeeR \
-#   --p-trunc-q 3 \
-#   --p-chimera-method 'consensus' \
-#   --p-n-reads-learn 100000000 \
-#   --p-n-threads $threads \
-#   --o-table table.qza \
-#   --o-representative-sequences rep-seqs.qza \
-#   --o-denoising-stats denoising-stats.qza \
-#   --verbose
-
+qiime dada2 denoise-paired \
+   --i-demultiplexed-seqs demux-paired-end-trimmed.qza \
+   --p-trunc-len-f $trunc_f \
+   --p-trunc-len-r $trunc_r \
+   --p-max-ee-f $maxeeF \
+   --p-max-ee-r $maxeeR \
+   --p-trunc-q 3 \
+   --p-chimera-method 'consensus' \
+   --p-n-reads-learn 100000000 \
+   --p-n-threads $threads \
+   --o-table table.qza \
+   --o-representative-sequences rep-seqs.qza \
+   --o-denoising-stats denoising-stats.qza \
+   --verbose
 
 ## Write out abundance table and filter by 0.25% 
 
