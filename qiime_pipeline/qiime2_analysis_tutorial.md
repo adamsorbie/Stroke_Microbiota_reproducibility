@@ -40,7 +40,7 @@ conda install -c bioconda bbmap
 Then run the script ```convert_phred.sh``` like so, supplying the file path to your fastq files 
 
 ```
-convert_phred.sh -p ~/data_win/16S/iScience-review/data/fastq
+bash convert_phred.sh -p ~/data_win/16S/iScience-review/data/fastq
 ```
 
 Before proceeding to Qiime2, it's important to check that the following python scripts are in the working directory or in your path: 
