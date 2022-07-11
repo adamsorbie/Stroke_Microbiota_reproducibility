@@ -80,14 +80,16 @@ UNDER CONSTRUCTION - We are currently working on implementing a tutorial on an a
 
 
 
-## Alpha Diversity
+## Alpha and Beta Diversity
 
+```
+qiime diversity core-metrics-phylogenetic --i-table q2_out/feature-table-filt.qza --i-phylogeny q2_out/rooted-tree.qza --m-metadata-file metadata_subset.tsv --p-sampling-depth 120000 --output-dir ./core-metrics-phylo-results 
+```
 
-### Plotting
-
-
-
-## Beta Diversity
+```
+qiime diversity core-metrics --i-table q2_out/feature-table-filt.qza --m-metadata-file metadata_subset.tsv --p-sampling-depth 120000 --output-dir ./core-metrics-results
+```
+### Plotting and Statistics 
 
 
 
