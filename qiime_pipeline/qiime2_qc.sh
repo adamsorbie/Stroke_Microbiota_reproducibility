@@ -36,6 +36,7 @@ python create_manifest.py q2_manifest_tmp.tsv ${output}/q2_manifest
 rm -rf q2_manifest_tmp.tsv 
 
 cd $output || exit 
+ 
 if [[ "$phred" == 64 ]]; 
 then
   # import fastq files 
@@ -61,4 +62,5 @@ qiime demux summarize \
   --i-data ${output}/demux-paired-end.qza \
   --o-visualization ${output}/demux-paired-end.qzv
 
-
+mkdir qc_out 
+mv demux-paired-end.qzv qc_out 

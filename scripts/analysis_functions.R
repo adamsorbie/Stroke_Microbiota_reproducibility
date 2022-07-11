@@ -439,39 +439,38 @@ add_taxonomy_da <- function(ps, list_da_asvs, da_res) {
   return(da_tax_out)
 }
 
-ancom_da <- function(ps, formula, group, ord=NULL, zero_thresh=0.9) {
+ancom_da <- function(ps, formula, group, ord=NULL, zero_thresh=0.3) {
   
   if (!is.null(ord)){
     group_levels <- levels(get_variable(ps, group))
     sample_data(ps)[[group]] <- factor(group_levels, levels = ord)
   }
- 
+  
   
   ps_f <- format_taxonomy(ps)
   
   res <- ancombc(phyloseq = ps_f, formula = formula, p_adj_method = "BH", 
-                 zero_cut = zero_thresh, group = group, struc_zero = TRUE, 
+                 prv_cut = zero_thresh, group = group, struc_zero = TRUE, 
                  neg_lb = FALSE, tol = 1e-5, max_iter = 100, conserve = TRUE, 
                  alpha = 0.05, global = FALSE)
   
   res_df <- data.frame(
-    ASV = row.names(res$res$beta),
-    beta = unlist(res$res$beta),
+    ASV = row.names(res$res$lfc),
+    beta = unlist(res$res$lfc),
     se = unlist(res$res$se),
     W = unlist(res$res$W),
     pval = unlist(res$res$p_val),
     qval = unlist(res$res$q_val),
     da = unlist(res$res$diff_abn))
-
+  
   res_da <- res_df %>%
     filter(da == T)
-
+  
   da_asvs <- res_da$ASV
   da_tax <- add_taxonomy_da(ps_f, da_asvs, res_da)
   
   return(da_tax)
 }
-
 
 
 plot_da <- function(ancom_da, groups, cols) {

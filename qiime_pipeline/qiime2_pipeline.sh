@@ -33,6 +33,7 @@ fi
 cp filter_low_abundant.py filter_fasta.sh ${path}
 cd $path || exit
 
+
 # run cutadapt 
 qiime cutadapt trim-paired \
    --i-demultiplexed-sequences demux-paired-end.qza \
@@ -120,3 +121,13 @@ qiime phylogeny align-to-tree-mafft-fasttree \
   --o-masked-alignment rep-seqs-filt-aln-mask.qza \
   --o-tree unrooted-tree.qza \
   --o-rooted-tree rooted-tree.qza
+
+## feature table summary 
+qiime feature-table summarize \
+--i-table feature-table-filt.qza \
+--m-sample-metadata-file metadata_subset.tsv \
+--o-visualization feature-table-filt.qzv
+
+## add tidy up - place files into folders and generate feature table summary 
+mkdir q2_out 
+mkdir intermediate
