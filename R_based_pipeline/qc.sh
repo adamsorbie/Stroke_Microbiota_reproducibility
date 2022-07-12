@@ -35,5 +35,5 @@ fastqc -t $threads $path/*.fastq.gz -o $outdir
 
 multiqc $outdir -o ${outdir}/multiqc
 # FIGARO
-figaro -i $path -o $out -a $amplicon_length -f $f_primer_len  -r $r_primer_len -m $min_overlap -F illumina 
+#figaro -i $path -o $out -a $amplicon_length -f $f_primer_len  -r $r_primer_len -m $min_overlap -F illumina 
 
