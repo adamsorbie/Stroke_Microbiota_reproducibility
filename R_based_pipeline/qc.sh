@@ -1,10 +1,10 @@
 #!/bin/bash
 # Author: Adam Sorbie
 # Date: 11/10/2021
-# Version: 0.8.5
+# Version: 0.8.6
  
-# default 
-min_overlap=20
+# default - not needed with FIGARO disabled
+#min_overlap=20
 
 # fix annoying issue where script fails if path is specified without /
 
