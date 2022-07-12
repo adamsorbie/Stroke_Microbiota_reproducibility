@@ -211,7 +211,7 @@ An R script "run_dada2.R" is provided to automate each step in the process.
   
   
 ```
-Rscript run_dada2.R -p ~/data_win/16S/iScience-review/data/fastq/trimmed_primer/ -f 240 -r 220 -o ~/data_win/16S/iScience-review/data/dada2_out/ -n 2 -N 5 -t 6
+Rscript run_dada2_PE.R -p ~/data_win/16S/iScience-review/data/fastq/trimmed_primer/ -f 240 -r 220 -o ~/data_win/16S/iScience-review/data/dada2_out/ -n 2 -N 5 -t 6
 ```
 
 This should create a folder called dada2_out (or whatever you chose to name) which contains the results. In the folder you should find the following files: 
@@ -238,5 +238,5 @@ Provided everything looks ok, we can proceed with the analysis of the resulting 
 
 in addition to our data processing pipeline, we have included a set of R functions, which perform many common tasks (e.g. Data normalisation, calculation of alpha and beta diversity metrics). A tutorial on how to use these is provided [here](https://github.com/adamsorbie/Stroke_Microbiota_reproducibility/blob/main/R_based_pipeline/analysis/R%20analysis%20tutorial.md) to help users learn 16S data analysis or indeed analyse their own data. 
 
-For those who prefer to use the Qiime2 based pipeline, the associated tutorial can be found [here](https://github.com/adamsorbie/Stroke_Microbiota_reproducibility/blob/main/qiime_pipeline/Qiime2%20analysis%20tutorial) 
+For those who prefer to use the Qiime2 based pipeline, the associated tutorial can be found [here](https://github.com/adamsorbie/Stroke_Microbiota_reproducibility/blob/main/qiime_pipeline/qiime2_analysis_tutorial.md) 
  
