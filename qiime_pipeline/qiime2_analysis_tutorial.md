@@ -15,8 +15,16 @@ To be able to perform these analyses you will first need to clone this repositor
 (type ```git clone git@github.com:adamsorbie/Stroke_Microbiota_reproducibility.git```). 
 You will also need a working installation of Qiime2 to follow this tutorial. 
 
-Note that due to the recent release of Qiime2022.2 this pipeline in its current form may not work as intended. This is being fixed and will be updated asap. 
+### Installation 
 
+```
+wget https://data.qiime2.org/distro/core/qiime2-2022.2-py38-linux-conda.yml
+conda env create -n qiime2-2022.2 --file qiime2-2022.2-py38-linux-conda.yml
+rm qiime2-2022.2-py38-linux-conda.yml
+
+# add short alias to activate qiime environment quickly
+echo "alias q2='conda activate qiime2-2022.2'" >> ~/.bashrc && source ~/.bashrc 
+```
 ## Data Processing 
 
 The Qiime2 processing pipeline mirrors that of the bash/R based pipeline, using the same tools under the Qiime2 wrapper. 
