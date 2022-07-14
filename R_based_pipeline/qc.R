@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-# Author: Adam Sorbie 
+# Author: Adam Sorbie
 # Date: 13/09/21
 # Version 0.9.6
 
@@ -58,7 +58,3 @@ ggsave(paste(opt$out,"quality_profile_f.jpg", sep="/"), qc_F, device = "jpeg", d
 
 qc_R <- plotQualityProfile(fnRs, aggregate=TRUE)
 ggsave(paste(opt$out,"quality_profile_r.jpg", sep="/"), qc_R, device = "jpeg", dpi = 200)
-
-
-
-

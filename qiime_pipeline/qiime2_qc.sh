@@ -1,11 +1,10 @@
 #!/bin/bash 
 
 # Author: Adam Sorbie
-# Date: 25/11/21
-# Version: 0.5.3 
+# Date: 14/07/22
+# Version: 0.8.2 
 
 # This script assumes you have installed the latest version of QIIME2 and activated your conda environment 
-phred=33
 while getopts p:o: flag
  do
    case "${flag}" in
@@ -37,26 +36,12 @@ rm -rf q2_manifest_tmp.tsv
 
 cd $output || exit 
  
-if [[ "$phred" == 64 ]]; 
-then
-  # import fastq files 
-  qiime tools import \
-    --type SampleData[PairedEndSequencesWithQuality] \
-    --input-path ${output}/q2_manifest \
-    --output-path ${output}/demux-paired-end.qza \
-    --input-format PairedEndFastqManifestPhred64
-elif [[ "$phred" == 33 ]];
-then
-  cd $output || exit 
-  # import fastq files 
-  qiime tools import \
-    --type SampleData[PairedEndSequencesWithQuality] \
-    --input-path ${output}/q2_manifest \
-    --output-path ${output}/demux-paired-end.qza \
-    --input-format PairedEndFastqManifestPhred33V2
-else 
-  echo "Not a supported encoding"
-fi 
+# import fastq files 
+qiime tools import \
+  --type SampleData[PairedEndSequencesWithQuality] \
+  --input-path ${output}/q2_manifest \
+  --output-path ${output}/demux-paired-end.qza \
+  --input-format PairedEndFastqManifestPhred33V2
 
 qiime demux summarize \
   --i-data ${output}/demux-paired-end.qza \

@@ -12,6 +12,9 @@ pacman::p_load(dada2, Biostrings, optparse, ggpubr, stringr, tictoc, DECIPHER)
 
 
 ### DOWNLOAD DATA 
+download.file("https://zenodo.org/record/6818510/files/Sorbie-Jimenez-Benakis-iScience-2022_raw_data_sample.zip?download=1", 
+              destfile = "data_sample.zip")
+unzip("data_sample.zip")
 
 
 ### LOAD LIBRARIES 

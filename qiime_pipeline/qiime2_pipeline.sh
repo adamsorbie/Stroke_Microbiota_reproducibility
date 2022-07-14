@@ -1,8 +1,8 @@
 #!/bin/bash 
 
 # Author: Adam Sorbie
-# Date: 25/11/21
-# Version: 0.5.1 
+# Date: 25/06/22
+# Version: 0.9.0 
 
 threads=1
 while getopts p:g:G:m:f:r:n:N:t: flag
