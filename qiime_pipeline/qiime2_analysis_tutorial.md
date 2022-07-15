@@ -90,13 +90,11 @@ Note that compared to the R-based pipeline, the qiime2 pipeline runs very slow, 
 
 ## Data Analysis 
 
-UNDER CONSTRUCTION - We are currently working on implementing a tutorial on an analysis pipeline within Qiime2 to mirror that of the R-based pipeline. For now please use the Qiime2 tutorials available here: https://docs.qiime2.org/2022.2/tutorials/
-
-
+As with the R-based pipeline, we also provide a short tutorial on conducting the analysis in Qiime2. In future we hope to have a fully python-based analysis, however for now we will stick to Qiime2 for analysis. 
 
 ## Data Normalisation
 
-
+Note that unlike the R-based analysis and indeed others, data normalisation is not a separate step in Qiime2, rather it is carried out internally when calculating alpha or beta diversity for example. Results obtained from this step may differ slightly to those from the other pipeline as Qiime2 uses rarefaction for normalisation. We generally recommend against rarefaction based on the conclusions of this [paper](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1003531). 
 
 ## Alpha and Beta Diversity
 
