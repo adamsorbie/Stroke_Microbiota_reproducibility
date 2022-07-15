@@ -99,19 +99,62 @@ as evidence [here](https://pubmed.ncbi.nlm.nih.gov/28253908/).
 
 ## Alpha and Beta Diversity
 
-Firstly, we will calculate various alpha and beta-diversity metrics. Luckily Qiime2 makes this very easy and in just two commands we can calculate non-phylogenetic alpha and beta-diversity metrics (e.g. Richness, Bray-Curtis): 
+Firstly, we will calculate various alpha and beta-diversity metrics. Luckily Qiime2 makes this very easy and in just a couuple of commands we can calculate non-phylogenetic alpha and beta-diversity metrics (e.g. Richness, Bray-Curtis): 
 
 ```
-qiime diversity core-metrics --i-table q2_out/feature-table-filt.qza --m-metadata-file metadata_subset.tsv --p-sampling-depth 120000 --output-dir ./core-metrics-results
+qiime diversity core-metrics --i-table q2_out/feature-table-filt.qza --m-metadata-file Metadata-16S-sequenced_wo_ctrls.txt --p-sampling-depth 120000 --output-dir core-metrics-results
 ```
 and also phylogenetic (Faith's PD and Unifrac): 
 ```
-qiime diversity core-metrics-phylogenetic --i-table q2_out/feature-table-filt.qza --i-phylogeny q2_out/rooted-tree.qza --m-metadata-file metadata_subset.tsv --p-sampling-depth 120000 --output-dir ./core-metrics-phylo-results 
+qiime diversity core-metrics-phylogenetic --i-table q2_out/feature-table-filt.qza --i-phylogeny q2_out/rooted-tree.qza --m-metadata-file Metadata-16S-sequenced_wo_ctrls.txt --p-sampling-depth 120000 --output-dir core-metrics-phylo-results 
 ```
+Unfortunately GUnifrac is not included in the core phylogenetic metrics so we have to run a further command to obtain these results: 
 
+```
+qiime diversity beta-phylogenetic --i-table q2_out/feature-table-filt.qza --i-phylogeny q2_out/rooted-tree.qza  --p-metric 'generalized_unifrac' --p-alpha 0.5 --o-distance-matrix core-metrics-phylo-results/GUnifrac_distance_matrix.qza 
+```
 ### Plotting and Statistics 
 
+#### Alpha diversity
 
+##### Richness 
 
+```
+qiime diversity alpha-group-significance --i-alpha-diversity core-metrics-results/observed_features_vector.qza --m-metadata-file Metadata-16S-sequenced_wo_ctrls.txt --o-visualization core-metrics-results/richness_statistics.qzv
+```
+
+##### Shannon
+
+Note that this calculates Shannon diversity and not Shannon effective diversity. 
+
+```
+qiime diversity alpha-group-significance --i-alpha-diversity core-metrics-results/shannon_vector.qza --m-metadata-file Metadata-16S-sequenced_wo_ctrls.txt --o-visualization core-metrics-results/Shannon_statistics.qzv
+```
+
+##### Faith's PD
+
+```
+qiime diversity alpha-group-significance --i-alpha-diversity core-metrics-phylo-results/faith_pd_vector.qza --m-metadata-file Metadata-16S-sequenced_wo_ctrls.txt --o-visualization core-metrics-phylo-results/faiths_pd_statistics.qzv
+```
+
+#### Beta-diversity
+
+```
+qiime diversity beta-group-significance --i-distance-matrix core-metrics-phylo-results/GUnifrac_distance_matrix.qza --m-metadata-file Metadata-16S-sequenced_wo_ctrls.txt --m-metadata-column Group --o-visualization core-metrics-phylo-results/Gunifrac-group-significance.qzv
+```
 
 ## Differentially abundant taxa
+
+```
+mkdir ANCOM 
+```
+qiime feature-table filter-features --i-table q2_out/feature-table-filt.qza --p-min-samples 6 --o-filtered-table ANCOM/feature-table-prev-filt.qza
+```
+
+```  
+qiime composition add-pseudocount --i-table ANCOM/feature-table-prev-filt.qza --o-composition-table ANCOM/feature-table-ANCOM.qza
+```
+
+```
+qiime composition ancom --i-table ANCOM/feature-table-ANCOM.qza --m-metadata-file Metadata-16S-sequenced_wo_ctrls.txt --m-metadata-column Group --o-visualization ANCOM/ancom_group.qzv
+```
