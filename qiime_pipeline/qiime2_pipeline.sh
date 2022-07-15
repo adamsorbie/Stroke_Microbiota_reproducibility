@@ -5,19 +5,20 @@
 # Version: 0.9.0 
 
 threads=1
-while getopts p:g:G:m:f:r:n:N:t: flag
+while getopts p:g:G:m:l:f:r:n:N:t: flag
 do
   case "${flag}" in
     p) path=${OPTARG};; 
     g) f_primer=${OPTARG};;
     G) r_primer=${OPTARG};;
-    m) min_len=${OPTARG};;
+    m) metadata=${OPTARG};;
+    l) min_len=${OPTARG};;
     f) trunc_f=${OPTARG};;
     r) trunc_r=${OPTARG};;
     n) maxeeF=${OPTARG};;
     N) maxeeR=${OPTARG};;
     t) threads=${OPTARG};; 
-    *) echo "usage: $0 [-p] [-g] [-G] [-m] [-f] [-r] [-n] [-N] [-t]" >&2
+    *) echo "usage: $0 [-p] [-g] [-G] [-m] [-l] [-f] [-r] [-n] [-N] [-t]" >&2
       exit 1 ;;
   esac
 done
@@ -125,7 +126,7 @@ qiime phylogeny align-to-tree-mafft-fasttree \
 ## feature table summary 
 qiime feature-table summarize \
 --i-table feature-table-filt.qza \
---m-sample-metadata-file metadata_subset.tsv \
+--m-sample-metadata-file $metadata \
 --o-visualization feature-table-filt.qzv
 
 ## add tidy up - place files into folders and generate feature table summary 

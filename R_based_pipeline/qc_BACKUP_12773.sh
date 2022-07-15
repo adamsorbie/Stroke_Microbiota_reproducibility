@@ -2,10 +2,15 @@
 # Author: Adam Sorbie
 # Date: 11/10/2021
 # Version: 0.8.6
-
+ 
+<<<<<<< HEAD
 # default parameters
 # min_overlap=20 - removed until FIGARO is updated
 threads=1
+=======
+# default - not needed with FIGARO disabled
+#min_overlap=20
+>>>>>>> 16f5fb5129f1bbbc0477446227e3e3a53b996fc7
 
 # fix annoying issue where script fails if path is specified without /
 
@@ -32,7 +37,7 @@ then
   exit
 fi
 
-outdir=$(echo ${out%/})
+outdir=$(echo ${out%/}) 
 mkdir -p $outdir
 
 fastqc -t $threads $path/*.fastq.gz -o $outdir
@@ -40,4 +45,5 @@ fastqc -t $threads $path/*.fastq.gz -o $outdir
 multiqc $outdir -o ${outdir}/multiqc
 
 # FIGARO
-#figaro -i $path -o $out -a $amplicon_length -f $f_primer_len  -r $r_primer_len -m $min_overlap -F illumina
+#figaro -i $path -o $out -a $amplicon_length -f $f_primer_len  -r $r_primer_len -m $min_overlap -F illumina 
+

@@ -1,8 +1,8 @@
 #!/bin/bash
 # Author: Adam Sorbie
 # Date: 11/10/2021
-# Version: 0.8.6
-
+# Version: 0.8.5
+ 
 # default parameters
 # min_overlap=20 - removed until FIGARO is updated
 threads=1
@@ -32,7 +32,7 @@ then
   exit
 fi
 
-outdir=$(echo ${out%/})
+outdir=$(echo ${out%/}) 
 mkdir -p $outdir
 
 fastqc -t $threads $path/*.fastq.gz -o $outdir
@@ -40,4 +40,5 @@ fastqc -t $threads $path/*.fastq.gz -o $outdir
 multiqc $outdir -o ${outdir}/multiqc
 
 # FIGARO
-#figaro -i $path -o $out -a $amplicon_length -f $f_primer_len  -r $r_primer_len -m $min_overlap -F illumina
+#figaro -i $path -o $out -a $amplicon_length -f $f_primer_len  -r $r_primer_len -m $min_overlap -F illumina 
+

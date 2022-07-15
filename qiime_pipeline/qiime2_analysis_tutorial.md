@@ -13,13 +13,31 @@ other stroke researchers to conduct their own analyses.
 
 To be able to perform these analyses you will first need to clone this repository: 
 (type ```git clone git@github.com:adamsorbie/Stroke_Microbiota_reproducibility.git```). 
-You will also need a working installation of Qiime2 to follow this tutorial. 
+You will also need a working installation of Qiime2 to follow this tutorial. Make sure you have followed the first section on the main page [here](https://github.com/adamsorbie/Stroke_Microbiota_reproducibility) (up to Data processing pipeline heading). 
 
-Note that due to the recent release of Qiime2022.2 this pipeline in its current form may not work as intended. This is being fixed and will be updated asap. 
+### Installation 
 
+If you have successfully installed conda, the installation of Qiime2 should be a breeze. 
+
+We can run the following commands to instally everything we need and make it easier to activate our Qiime2 conda env. 
+```
+wget https://data.qiime2.org/distro/core/qiime2-2022.2-py38-linux-conda.yml
+conda env create -n qiime2-2022.2 --file qiime2-2022.2-py38-linux-conda.yml
+rm qiime2-2022.2-py38-linux-conda.yml
+
+# add short alias to activate qiime environment quickly
+echo "alias q2='conda activate qiime2-2022.2'" >> ~/.bashrc && source ~/.bashrc 
+```
 ## Data Processing 
 
+
 The Qiime2 processing pipeline mirrors that of the bash/R based pipeline, using the same tools under the Qiime2 wrapper. 
+
+Before doing anything we need to make sure to activate our Qiime2 conda env. Thanks to the handy alias we defined above we can do this like so: 
+
+```
+q2
+```
 
 To perform sample QC etc, we first run the bash script ```qiime2_qc.sh```, providing the path of fastq files and an output folder for the qiime2 artifact and visualization. 
 
