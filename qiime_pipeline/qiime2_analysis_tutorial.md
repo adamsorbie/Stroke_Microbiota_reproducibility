@@ -148,6 +148,8 @@ qiime diversity beta-group-significance --i-distance-matrix core-metrics-phylo-r
 ```
 mkdir ANCOM 
 ```
+
+```
 qiime feature-table filter-features --i-table q2_out/feature-table-filt.qza --p-min-samples 6 --o-filtered-table ANCOM/feature-table-prev-filt.qza
 ```
 
