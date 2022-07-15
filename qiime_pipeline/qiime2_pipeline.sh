@@ -61,6 +61,11 @@ qiime dada2 denoise-paired \
    --o-denoising-stats denoising-stats.qza \
    --verbose
 
+#Visualize DADA2 stats
+qiime metadata tabulate \
+--m-input-file denoising-stats.qza \
+--o-visualization denoising-stats.qzv
+
 ## Write out abundance table and filter by 0.25% 
 
 qiime tools export --input-path table.qza --output-path .
@@ -129,6 +134,7 @@ qiime feature-table summarize \
 --m-sample-metadata-file $metadata \
 --o-visualization feature-table-filt.qzv
 
-## add tidy up - place files into folders and generate feature table summary 
+## TO-DO add tidy up - place files into folders
 mkdir q2_out 
 mkdir intermediate
+
