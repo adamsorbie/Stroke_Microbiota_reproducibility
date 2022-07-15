@@ -90,21 +90,25 @@ Note that compared to the R-based pipeline, the qiime2 pipeline runs very slow, 
 
 ## Data Analysis 
 
-As with the R-based pipeline, we also provide a short tutorial on conducting the analysis in Qiime2. In future we hope to have a fully python-based analysis, however for now we will stick to Qiime2 for analysis. 
+As with the R-based pipeline, we also provide a short tutorial on conducting the analysis in Qiime2. In future we hope to have a fully python-based analysis, based on the Qiime2 artifact API and seaborn for visualisation however, for now we will stick to command-line Qiime2 for analysis. 
 
 ## Data Normalisation
 
-Note that unlike the R-based analysis and indeed others, data normalisation is not a separate step in Qiime2, rather it is carried out internally when calculating alpha or beta diversity for example. Results obtained from this step may differ slightly to those from the other pipeline as Qiime2 uses rarefaction for normalisation. We generally recommend against rarefaction based on the conclusions of this [paper](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1003531). 
+Note that unlike the R-based analysis and indeed others, data normalisation is not a separate step in Qiime2, rather it is carried out internally when calculating alpha or beta diversity for example. Results obtained from this step may differ slightly to those from the other pipeline as Qiime2 uses rarefaction for normalisation. We generally recommend against rarefaction - particularly for differential abundance analysis - based on the conclusions of this [paper](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1003531). Despite this, rarefaction is still a valid and robust method for diversity analyses   
+as evidence [here](https://pubmed.ncbi.nlm.nih.gov/28253908/). 
 
 ## Alpha and Beta Diversity
 
-```
-qiime diversity core-metrics-phylogenetic --i-table q2_out/feature-table-filt.qza --i-phylogeny q2_out/rooted-tree.qza --m-metadata-file metadata_subset.tsv --p-sampling-depth 120000 --output-dir ./core-metrics-phylo-results 
-```
+Firstly, we will calculate various alpha and beta-diversity metrics. Luckily Qiime2 makes this very easy and in just two commands we can calculate non-phylogenetic alpha and beta-diversity metrics (e.g. Richness, Bray-Curtis): 
 
 ```
 qiime diversity core-metrics --i-table q2_out/feature-table-filt.qza --m-metadata-file metadata_subset.tsv --p-sampling-depth 120000 --output-dir ./core-metrics-results
 ```
+and also phylogenetic (Faith's PD and Unifrac): 
+```
+qiime diversity core-metrics-phylogenetic --i-table q2_out/feature-table-filt.qza --i-phylogeny q2_out/rooted-tree.qza --m-metadata-file metadata_subset.tsv --p-sampling-depth 120000 --output-dir ./core-metrics-phylo-results 
+```
+
 ### Plotting and Statistics 
 
 
