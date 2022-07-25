@@ -7,6 +7,7 @@ If your institute does not have a core facility, you may have to outsource seque
 #### Europe 
 
 [Eurofins](https://eurofinsgenomics.com/en/products/next-generation-sequencing/16s-microbiome-profiling/)
+
 [Macrogen](https://www.macrogen-europe.com/services/next-generation-sequencing/metagenome-sequencing)
 
 #### Asia
@@ -16,7 +17,9 @@ If your institute does not have a core facility, you may have to outsource seque
 #### North America 
 
 [Zymo](https://www.zymoresearch.com/pages/16s-its-amplicon-sequencing) 
+
 [MrDNA](https://www.mrdnalab.com/sequencing-service.html)
+
 [Norgen](https://norgenbiotek.com/about/about-norgen) 
 
 #### South America 
