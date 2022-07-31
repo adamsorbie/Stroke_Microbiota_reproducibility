@@ -1,18 +1,17 @@
 #!/bin/bash 
 
 # Author: Adam Sorbie
-# Date: 25/06/22
-# Version: 0.9.0 
+# Date: 27/07/22
+# Version: 0.9.2 
 
 threads=1
+maxeeF=2
+maxeeR=2
 while getopts p:g:G:m:l:f:r:n:N:t: flag
 do
   case "${flag}" in
     p) path=${OPTARG};; 
-    g) f_primer=${OPTARG};;
-    G) r_primer=${OPTARG};;
     m) metadata=${OPTARG};;
-    l) min_len=${OPTARG};;
     f) trunc_f=${OPTARG};;
     r) trunc_r=${OPTARG};;
     n) maxeeF=${OPTARG};;
@@ -35,17 +34,6 @@ cp filter_low_abundant.py filter_fasta.sh ${path}
 cd $path || exit
 
 
-# run cutadapt 
-qiime cutadapt trim-paired \
-   --i-demultiplexed-sequences demux-paired-end.qza \
-   --p-front-f $f_primer \
-   --p-front-r $r_primer \
-   --p-minimum-length $min_len \
-   --o-trimmed-sequences demux-paired-end-trimmed.qza \
-   --p-cores $threads \
-   --verbose
-
-
 qiime dada2 denoise-paired \
    --i-demultiplexed-seqs demux-paired-end-trimmed.qza \
    --p-trunc-len-f $trunc_f \
@@ -54,7 +42,7 @@ qiime dada2 denoise-paired \
    --p-max-ee-r $maxeeR \
    --p-trunc-q 3 \
    --p-chimera-method 'consensus' \
-   --p-n-reads-learn 100000000 \
+   --p-n-reads-learn 100000 \
    --p-n-threads $threads \
    --o-table table.qza \
    --o-representative-sequences rep-seqs.qza \
@@ -135,6 +123,7 @@ qiime feature-table summarize \
 --o-visualization feature-table-filt.qzv
 
 ## TO-DO add tidy up - place files into folders
-mkdir q2_out 
-mkdir intermediate
+mkdir -p q2_out intermediate logs
 
+mv table.qza demux-paired-end.qza demux-paired-end-trimmed.qza keep-asvs.txt *.tsv *.fasta *.biom
+mv denoising* logs 

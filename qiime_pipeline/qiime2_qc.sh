@@ -2,16 +2,19 @@
 
 # Author: Adam Sorbie
 # Date: 14/07/22
-# Version: 0.8.2 
+# Version: 0.8.5 
 
 # This script assumes you have installed the latest version of QIIME2 and activated your conda environment 
-while getopts p:o: flag
+while getopts p:o:g:G:l:t: flag
  do
    case "${flag}" in
      p) path=${OPTARG};;
-     o) output=${OPTARG};; 
-     e) encoding=${OPTARG};;
-     *) echo "usage: $0 [-p] [-o]" >&2
+     o) output=${OPTARG};;
+     g) f_primer=${OPTARG};;
+     G) r_primer=${OPTARG};;
+     l) min_len=${OPTARG};; 
+     t) threads=${OPTARG};;
+     *) echo "usage: $0 [-p] [-o] [-g] [-G] [-l] [-t]" >&2
         exit 1 ;;
    esac
 done
@@ -43,9 +46,21 @@ qiime tools import \
   --output-path ${output}/demux-paired-end.qza \
   --input-format PairedEndFastqManifestPhred33V2
 
-qiime demux summarize \
-  --i-data ${output}/demux-paired-end.qza \
-  --o-visualization ${output}/demux-paired-end.qzv
 
-mkdir qc_out 
-mv demux-paired-end.qzv qc_out 
+# run cutadapt 
+qiime cutadapt trim-paired \
+   --i-demultiplexed-sequences demux-paired-end.qza \
+   --p-front-f $f_primer \
+   --p-front-r $r_primer \
+   --p-minimum-length $min_len \
+   --o-trimmed-sequences demux-paired-end-trimmed.qza \
+   --p-cores $threads \
+   --verbose
+
+
+qiime demux summarize \
+  --i-data ${output}/demux-paired-end-trimmed.qza \
+  --o-visualization ${output}/demux-paired-end-trimmed.qzv
+
+mkdir -p qc_out 
+mv demux-paired-end-trimmed.qzv qc_out 
