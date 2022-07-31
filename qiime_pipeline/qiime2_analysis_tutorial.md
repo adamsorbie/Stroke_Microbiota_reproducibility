@@ -97,10 +97,18 @@ As with the R-based pipeline, we also provide a short tutorial on conducting the
 Note that unlike the R-based analysis and indeed others, data normalisation is not a separate step in Qiime2, rather it is carried out internally when calculating alpha or beta diversity for example. Results obtained from this step may differ slightly to those from the other pipeline as Qiime2 uses rarefaction for normalisation. We generally recommend against rarefaction - particularly for differential abundance analysis - based on the conclusions of this [paper](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1003531). Despite this, rarefaction is still a valid and robust method for diversity analyses   
 as evidence [here](https://pubmed.ncbi.nlm.nih.gov/28253908/). 
 
+
 ## Alpha and Beta Diversity
 
-Firstly, we will calculate various alpha and beta-diversity metrics. Luckily Qiime2 makes this very easy and in just a couuple of commands we can calculate non-phylogenetic alpha and beta-diversity metrics (e.g. Richness, Bray-Curtis): 
+ 
 
+Firstly, we will calculate various alpha and beta-diversity metrics. Luckily Qiime2 makes this very easy and in just a couuple of commands we can calculate non-phylogenetic alpha and beta-diversity metrics (e.g. Richness, Bray-Curtis). Before we do this however, we should remove the negative control sample from our qza file like so: 
+
+```
+qiime feature-table filter-samples --i-table feature-table-filt.qza --m-metadata-file Metadata-16S-sequenced.txt --p-where "SampleID = 'RD_neg'" --o-filtered-table feature-table-filt_nocontrol.qza
+```
+
+Now we can go ahead and calculate our alpha and beta-diversity metrics
 ```
 qiime diversity core-metrics --i-table q2_out/feature-table-filt.qza --m-metadata-file Metadata-16S-sequenced_wo_ctrls.txt --p-sampling-depth 120000 --output-dir core-metrics-results
 ```
