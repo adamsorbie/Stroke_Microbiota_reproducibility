@@ -3,8 +3,9 @@
 
 <figure>
 <img src="https://user-images.githubusercontent.com/23216921/141769492-48fb6c60-d466-4242-a270-ad910ed666fc.png" width="350" height="550">
-<figcaption>Bi-directional interaction of Microbiota and Stroke.</figcaption>
+<figcaption> Bi-directional interaction of Microbiota and Stroke.</figcaption>
 </figure>
+
 
 
 This repository contains code, data and associated tutorials for Sorbie, Jimenez and Benakis, 2022, iScience: https://www.cell.com/iscience/fulltext/S2589-0042(22)00268-1
