@@ -9,6 +9,7 @@
 
 This repository contains code, data and associated tutorials for Sorbie, Jimenez and Benakis, 2022, iScience: https://www.cell.com/iscience/fulltext/S2589-0042(22)00268-1
 Recently, the interplay between the microbiota and ischemic stroke is increasingly being recognised, however differences in methodology, study populations and data analysis have led to a lack of consistent findings between different studies. In our manuscript we aim to provide a framework to conduct stroke-microbiota studies in a rigorous and reproducible manner. This github repository accompanies the manuscript, providing code and a tutorial for processing and analysis of 16S sequencing data.  
+If you don't have your own data but would like to follow along with the tutorial, rawdata from our manuscript can be downloaded [here](https://www.ebi.ac.uk/ena/browser/view/PRJEB48735?show=reads). Navigate to the read files tab and move along until the submitted files column can be seen and click downnload all. 
 
 ## Data processing and Analysis 
 
