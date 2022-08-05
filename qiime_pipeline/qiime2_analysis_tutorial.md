@@ -105,7 +105,8 @@ as evidence [here](https://pubmed.ncbi.nlm.nih.gov/28253908/).
 Firstly, we will calculate various alpha and beta-diversity metrics. Luckily Qiime2 makes this very easy and in just a couuple of commands we can calculate non-phylogenetic alpha and beta-diversity metrics (e.g. Richness, Bray-Curtis). Before we do this however, we should remove the negative control sample from our qza file like so: 
 
 ```
-qiime feature-table filter-samples --i-table feature-table-filt.qza --m-metadata-file Metadata-16S-sequenced.txt --p-where "SampleID != 'RD_neg'" --o-filtered-table feature-table-filt-nocontrol.qza
+# remove from metadata manually e.g. in excel or text editor and provide the edited file as the metadata argument. 
+qiime feature-table filter-samples --i-table feature-table-filt-nocontrol.qza --m-metadata-file Metadata-16S-sequenced_wo_ctrls.txt --o-filtered-table feature-table-filt-nocontrols.qza
 ```
 
 Now we can go ahead and calculate our alpha and beta-diversity metrics
