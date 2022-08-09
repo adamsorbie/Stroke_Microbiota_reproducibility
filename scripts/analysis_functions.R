@@ -1,8 +1,8 @@
 if(!require("pacman")){
   install.packages("pacman", repos = "http://cran.us.r-project.org")
 }
-pacman::p_load(tidyverse, ggpubr, rstatix, picante, phyloseq,
-               vegan, ANCOMBC, phangorn, GUniFrac, zoo)
+pacman::p_load(BiocManager, tidyverse, ggpubr, rstatix, picante, 
+               phyloseq,vegan, ANCOMBC, phangorn, GUniFrac, zoo)
 
 ######################### DATA WRANGLING #########################  
 
