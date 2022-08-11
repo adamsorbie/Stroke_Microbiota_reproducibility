@@ -115,7 +115,7 @@ fnFs <- sort(list.files(pattern="R1_001.fastq.gz", full.names = TRUE))
 sample.names <- sapply(strsplit(basename(fnFs), "_R1"), `[`, 1); sample.names
 
 # if sample names contain trimmed_primer suffix remove it
-if (str_detect(sample.names, "_trimmed_primer") == TRUE){
+if (any(str_detect(sample.names, "_trimmed_primer") == TRUE)){
   sample.names <- gsub(sample.names, pattern = "_trimmed_primer", 
                        replacement = "")
 }

@@ -145,8 +145,10 @@ the ```group.order```parameter.
 ```{r}
 plot_boxplot(df = alpha_div_meta, variable_col = "Group", value_col = "Richness", 
              fill_var = "Group", comparisons_list = comps, xlab = "Group", 
-             ylab = "Richness", p_title = "Richness Stroke vs Sham", 
-             col_palette = colours, group.order = c("Sham", "Stroke")) 
+             ylab = "Richness", p_title = "Richness Stroke vs Sham",, 
+             col_palette = colours, group.order = c("Sham", "Stroke")) +
+  theme(axis.text = element_text(size=16))
+ggsave(filename = "richness.pdf", device = "pdf",dpi=300, width = 4.5, height = 5)
 ```
 #### Shannon Effective 
 
@@ -154,7 +156,9 @@ plot_boxplot(df = alpha_div_meta, variable_col = "Group", value_col = "Richness"
 plot_boxplot(df = alpha_div_meta, variable_col = "Group", value_col = "Shannon.Effective", 
              fill_var = "Group", comparisons_list = comps, xlab = "Group", 
              ylab = "Shannon.Effective", p_title = "Shannon.Effective Stroke vs Sham", 
-             col_palette = colours, group.order = c("Sham", "Stroke")) 
+             col_palette = colours, group.order = c("Sham", "Stroke"))+
+  theme(axis.text = element_text(size=16))
+ggsave(filename = "shannon_eff.pdf", device = "pdf",dpi=300, width = 4.5, height = 5)
 ```
 
 #### Faith's PD 
@@ -163,7 +167,9 @@ plot_boxplot(df = alpha_div_meta, variable_col = "Group", value_col = "Shannon.E
 plot_boxplot(df = alpha_div_meta, variable_col = "Group", value_col = "Faiths.PD", 
              fill_var = "Group", comparisons_list = comps, xlab = "Group", 
              ylab = "Faiths.PD", p_title = "Faith's PD Stroke vs Sham", 
-             col_palette = colours, group.order = c("Sham", "Stroke")) 
+             col_palette = colours, group.order = c("Sham", "Stroke")) +
+  theme(axis.text = element_text(size=16)) 
+ggsave(filename = "faithspd.pdf", device = "pdf",dpi=300, width = 4.5, height = 5)
 ```
 
 Statistical significance is calculated internally in the ```plot_boxplot```
@@ -223,8 +229,12 @@ plot_beta_div(ps_norm, ordination = betadiv$Ordination,
               dist_matrix = betadiv$Distance_Matrix, group_variable = "Group", 
               cols = colours)+ 
   xlab("NMDS1") + 
-  ylab("NMDS2")
-
+  ylab("NMDS2") + 
+  theme(axis.title = element_text(size=18),
+        axis.text = element_text(size=16),
+        legend.title = element_text(size=16),
+        legend.text = element_text(size=16))
+ggsave(filename = "NMDS_gunifrac.pdf", device = "pdf",dpi=300, width = 8.5, height = 5)
 ```
 ## Differential abundance
 
@@ -236,7 +246,44 @@ abundance method and returns significant results. As input, only the phyloseq
 object and the column name of the grouping variable is required. 
 
 ```{r}
-res_ancom <- ancom_da(ps_norm, "Group")
+ancom_da2 <- function(ps, formula, group, ord=NULL, zero_thresh=0.3) {
+  
+  if (!is.null(ord)){
+    group_levels <- levels(get_variable(ps, group))
+    sample_data(ps)[[group]] <- factor(group_levels, levels = ord)
+  }
+  
+  
+  ps_f <- format_taxonomy(ps)
+  
+  res <- ancombc(phyloseq = ps_f, formula = formula, p_adj_method = "BH", 
+                 zero_cut = zero_thresh, group = group, struc_zero = TRUE, 
+                 neg_lb = FALSE, tol = 1e-5, max_iter = 100, conserve = TRUE, 
+                 alpha = 0.05, global = FALSE)
+
+  res_df <- data.frame(
+     # temp fix for ancom version diffs
+    ASV = row.names(res$res[[1]]),
+    beta = unlist(res$res[[1]]),
+    se = unlist(res$res$se),
+    W = unlist(res$res$W),
+    pval = unlist(res$res$p_val),
+    qval = unlist(res$res$q_val),
+    da = unlist(res$res$diff_abn))
+
+  res_da <- res_df %>%
+    filter(da == T)
+
+  da_asvs <- res_da$ASV
+  da_tax <- add_taxonomy_da(ps_f, da_asvs, res_da)
+  
+  return(da_tax)
+}
+```
+
+
+```{r}
+res_ancom <- ancom_da2(ps_norm, formula = "Group", group = "Group")
 ```
 To visualise differentially abundant taxa, we provide a function which calculates
 fold change of significant taxa from above and plots diverging dot plot coloured by 
@@ -247,7 +294,10 @@ an ordered vector of the group levels e.g. ```c("Sham", "Stroke")```. Additional
 we can provide the group colours to make interpretation easier. 
 
 ```{r}
-p <- plot_da(res_ancom, groups = c("Sham", "Stroke"), cols=colours)
+p <- plot_da(res_ancom, groups = c("Sham", "Stroke"), cols=colours) + 
+  scale_y_continuous(breaks = seq(-3, 3, 1), limits = c(-4, 4))
+p
+ggsave("ancombc_da.pdf", p, device = "pdf",dpi=300, width = 8, height = 9)
 ```
 
 

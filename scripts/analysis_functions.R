@@ -456,11 +456,18 @@ ancom_da <- function(ps, formula, group, ord=NULL, zero_thresh=0.3, level="ASV")
                    prv_cut = zero_thresh, group = group, struc_zero = TRUE, 
                    neg_lb = FALSE, tol = 1e-5, max_iter = 100, conserve = TRUE, 
                    alpha = 0.05, global = FALSE)
+<<<<<<< HEAD
     
     res_df <- data.frame(
       # temp fix for ancom version diffs
       ASV = row.names(res$res[[1]]),
       lfc = unlist(res$res[[1]]),
+=======
+  
+    res_df <- data.frame(
+      ASV = row.names(res$res$lfc),
+      lfc = unlist(res$res$lfc),
+>>>>>>> 0910f2e38870d7f38f46e409e3756ad14622e428
       se = unlist(res$res$se),
       W = unlist(res$res$W),
       pval = unlist(res$res$p_val),
