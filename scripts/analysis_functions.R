@@ -1,8 +1,8 @@
 if(!require("pacman")){
   install.packages("pacman", repos = "http://cran.us.r-project.org")
 }
-pacman::p_load(tidyverse, ggpubr, rstatix, picante, phyloseq,
-               vegan, ANCOMBC, phangorn, GUniFrac, zoo)
+pacman::p_load(BiocManager, tidyverse, ggpubr, rstatix, picante, 
+               phyloseq,vegan, ANCOMBC, phangorn, GUniFrac, zoo)
 
 ######################### DATA WRANGLING #########################  
 
@@ -439,52 +439,61 @@ add_taxonomy_da <- function(ps, list_da_asvs, da_res) {
   return(da_tax_out)
 }
 
-ancom_da <- function(ps, formula, group, ord=NULL, zero_thresh=0.3) {
+ancom_da <- function(ps, formula, group, ord=NULL, zero_thresh=0.3, level="ASV") {
   
   if (!is.null(ord)){
     group_levels <- levels(get_variable(ps, group))
     sample_data(ps)[[group]] <- factor(group_levels, levels = ord)
   }
   
+  if (level %in% c("Phylum", "Class", "Order", "Family", "Genus", "ASV"){
+    ps_f <- format_taxonomy(ps)
+      if (level != "ASV") {
+        ps_f <- tax_glom(GlobalPatterns, taxrank=level)
+      }
   
-  ps_f <- format_taxonomy(ps)
+    res <- ancombc(phyloseq = ps_f, formula = formula, p_adj_method = "BH", 
+                   prv_cut = zero_thresh, group = group, struc_zero = TRUE, 
+                   neg_lb = FALSE, tol = 1e-5, max_iter = 100, conserve = TRUE, 
+                   alpha = 0.05, global = FALSE)
+    
+    res_df <- data.frame(
+      # temp fix for ancom version diffs
+      ASV = row.names(res$res[[1]]),
+      lfc = unlist(res$res[[1]]),
+      se = unlist(res$res$se),
+      W = unlist(res$res$W),
+      pval = unlist(res$res$p_val),
+      qval = unlist(res$res$q_val),
+      da = unlist(res$res$diff_abn)) %>% 
+      mutate(Log2FC = log2(exp(lfc)))
   
-  res <- ancombc(phyloseq = ps_f, formula = formula, p_adj_method = "BH", 
-                 prv_cut = zero_thresh, group = group, struc_zero = TRUE, 
-                 neg_lb = FALSE, tol = 1e-5, max_iter = 100, conserve = TRUE, 
-                 alpha = 0.05, global = FALSE)
+    res_da <- res_df %>%
+      filter(da == T)
   
-  res_df <- data.frame(
-    ASV = row.names(res$res$lfc),
-    beta = unlist(res$res$lfc),
-    se = unlist(res$res$se),
-    W = unlist(res$res$W),
-    pval = unlist(res$res$p_val),
-    qval = unlist(res$res$q_val),
-    da = unlist(res$res$diff_abn))
+    da_asvs <- res_da$ASV
+    da_tax <- add_taxonomy_da(ps_f, da_asvs, res_da)
   
-  res_da <- res_df %>%
-    filter(da == T)
-  
-  da_asvs <- res_da$ASV
-  da_tax <- add_taxonomy_da(ps_f, da_asvs, res_da)
-  
-  return(da_tax)
+    return(da_tax)
+  }
+ else {
+  print("Unsupported taxonomic rank: choose from: 'Phylum', 'Class', 'Order', 'Family', 'Genus' or 'ASV' ")
+  } 
 }
 
 
 plot_da <- function(ancom_da, groups, cols) {
   
   ancom_da_plot <- ancom_da %>% 
-    mutate(enriched_in = ifelse(beta > 0, groups[2], 
+    mutate(enriched_in = ifelse(Log2FC > 0, groups[2], 
                                 groups[1]))
   
   ancom_da_plot_sort <- ancom_da_plot %>% 
-    arrange(beta) %>% 
+    arrange(Log2FC) %>% 
     mutate(Highest_classified=factor(Highest_classified, levels=Highest_classified))
   
   
-  p <- ggplot(ancom_da_plot_sort, aes(x = Highest_classified, y = beta, color = enriched_in)) +
+  p <- ggplot(ancom_da_plot_sort, aes(x = Highest_classified, y = Log2FC, color = enriched_in)) +
     geom_point(size = 5) +
     labs(y = paste("\nLog2 Fold-Change", groups[1], "vs", groups[2], sep=" "), x = "") +
     theme_bw() + 
