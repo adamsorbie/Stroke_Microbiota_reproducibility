@@ -245,45 +245,9 @@ This function performs the ancom-bc test, a compositionally aware differential
 abundance method and returns significant results. As input, only the phyloseq
 object and the column name of the grouping variable is required. 
 
-```{r}
-ancom_da2 <- function(ps, formula, group, ord=NULL, zero_thresh=0.3) {
-  
-  if (!is.null(ord)){
-    group_levels <- levels(get_variable(ps, group))
-    sample_data(ps)[[group]] <- factor(group_levels, levels = ord)
-  }
-  
-  
-  ps_f <- format_taxonomy(ps)
-  
-  res <- ancombc(phyloseq = ps_f, formula = formula, p_adj_method = "BH", 
-                 zero_cut = zero_thresh, group = group, struc_zero = TRUE, 
-                 neg_lb = FALSE, tol = 1e-5, max_iter = 100, conserve = TRUE, 
-                 alpha = 0.05, global = FALSE)
-
-  res_df <- data.frame(
-     # temp fix for ancom version diffs
-    ASV = row.names(res$res[[1]]),
-    beta = unlist(res$res[[1]]),
-    se = unlist(res$res$se),
-    W = unlist(res$res$W),
-    pval = unlist(res$res$p_val),
-    qval = unlist(res$res$q_val),
-    da = unlist(res$res$diff_abn))
-
-  res_da <- res_df %>%
-    filter(da == T)
-
-  da_asvs <- res_da$ASV
-  da_tax <- add_taxonomy_da(ps_f, da_asvs, res_da)
-  
-  return(da_tax)
-}
-```
-
 
 ```{r}
-res_ancom <- ancom_da2(ps_norm, formula = "Group", group = "Group")
+res_ancom <- ancom_da(ps_norm, formula = "Group", group = "Group", level = "Family")
 ```
 To visualise differentially abundant taxa, we provide a function which calculates
 fold change of significant taxa from above and plots diverging dot plot coloured by 
@@ -294,10 +258,9 @@ an ordered vector of the group levels e.g. ```c("Sham", "Stroke")```. Additional
 we can provide the group colours to make interpretation easier. 
 
 ```{r}
-p <- plot_da(res_ancom, groups = c("Sham", "Stroke"), cols=colours) + 
-  scale_y_continuous(breaks = seq(-3, 3, 1), limits = c(-4, 4))
+p <- plot_da(res_ancom, groups = c("Sham", "Stroke"), cols=colours) 
 p
-ggsave("ancombc_da.pdf", p, device = "pdf",dpi=300, width = 8, height = 9)
+#ggsave("ancombc_da.pdf", p, device = "pdf",dpi=300, width = 8, height = 9)
 ```
 
 
