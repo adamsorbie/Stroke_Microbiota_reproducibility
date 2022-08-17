@@ -144,6 +144,20 @@ transform <- function(ps, transform="mss") {
 
 ######################### PLOTTING AND STATS #########################
 
+# calculate colour palettes
+calc_pal <- function(ps, group_variable){
+  # update function to accept nonps objects 
+  meta <- meta_to_df(ps)
+  groups <- unique(meta[, group_variable])
+  
+  if (length(groups) < 10){
+    pal <- pal_npg()(length(groups))
+  }
+  else {
+    print("Exceeded colour palette limit, use custom palette")
+  }
+}
+
 # calculate adonis R2 and p-value
 phyloseq_adonis <- function(ps, dist_matrix, factor, ...) {
   
@@ -298,6 +312,33 @@ plot_scatter <- function(df, x, y, point_color,
   }
 }
 
+
+plot_beta_div <- function(ps, ordination, dist_matrix, group_variable, add_ellipse=FALSE, cols=NULL) {
+  # add support for colors and ellipses
+  # significance
+  if (is.null(cols)){
+    cols <- calc_pal(ps, group_variable)
+  }
+  ad <- phyloseq_adonis(ps, dist_matrix, group_variable)
+  
+  # check sample data dimensions >1 otherwise phyloseq 
+  # fails to colour samples due to bug:https://github.com/joey711/phyloseq/issues/541 
+  if (dim(sample_data(ps))[2] <2) {
+    # add repeat of first column as dummy 
+    sample_data(ps)[ , 2] <- sample_data(ps)[ ,1]
+  }
+  plot <- plot_ordination(ps, ordination , color=group_variable)
+  plot$layers[[1]] <- NULL
+  
+  plot_out <- plot + geom_point(size=3, alpha=0.75) +
+    theme_bw() + 
+    scale_fill_manual(values=cols) +
+    scale_color_manual(values = cols) +
+    labs(caption = bquote(Adonis~R^2 ~ .(round(ad$aov.tab$R2[1], 2)) ~~ p-value ~ .(ad$aov.tab$`Pr(>F)`[1])))
+  
+  return(plot_out)
+}
+
 ######################### ALPHA DIVERSITY #########################
 
 # calculate shannon effective
@@ -370,16 +411,21 @@ phyloseq_gunifrac <- function(ps, asdist=TRUE) {
 
 
 calc_betadiv <- function(ps, dist, ord_method="NMDS") {
+  
   if (ord_method %in% c("NMDS", "MDS", "PCoA")) {
     
-    
+    if (ord_method == "NMDS"){
+      values <- "points"
+    }
+    else {
+      values <- "values"
+    }
     if (dist %in% c("unifrac", "wunifrac", "bray")) {
       
       dist_metric <- distance(ps, dist)
       ord <- ordinate(ps, ord_method, dist_metric)
-      
       return_list <- list("Distance_Matrix" = dist_metric, 
-                          "Ordination" = ord$points)
+                          "Ordination" = ord[[values]])
       return(return_list)
     }
     else if (dist %in% c("gunifrac")) {
@@ -388,40 +434,19 @@ calc_betadiv <- function(ps, dist, ord_method="NMDS") {
       ord <- ordinate(ps, ord_method, gu)
       
       return_list <- list("Distance_Matrix" = gu, 
-                          "Ordination" = ord$points)
+                          "Ordination" = ord[[values]])
       return(return_list)
     }
+    else {
+      print("Distance metric not supported, supported metrics are; bray, unifrac, wunifrac, gunifrac")
+    }
+  }
   else {
-    print("Ordination method not supported, supported methods are:
-          NMDS, MDS, PCoA")
+    print("Ordination method not supported, supported methods are: NMDS, MDS, PCoA")
     stop()
   }
-} 
+  
 }
-
-plot_beta_div <- function(ps, ordination, dist_matrix, group_variable, add_ellipse=FALSE, cols) {
-  # add support for colors and ellipses
-  # significance
-  ad <- phyloseq_adonis(ps, dist_matrix, group_variable)
-  
-  # check sample data dimensions >1 otherwise phyloseq 
-  # fails to colour samples due to bug:https://github.com/joey711/phyloseq/issues/541 
-  if (dim(sample_data(ps))[2] <2) {
-    # add repeat of first column as dummy 
-    sample_data(ps)[ , 2] <- sample_data(ps)[ ,1]
-  }
-  plot <- plot_ordination(ps, ordination , color=group_variable)
-  plot$layers[[1]] <- NULL
-  
-  plot_out <- plot + geom_point(size=3, alpha=0.75) +
-    theme_bw() + 
-    scale_fill_manual(values=cols) +
-    scale_color_manual(values = cols) +
-    labs(caption = bquote(Adonis~R^2 ~ .(round(ad$aov.tab$R2[1], 2)) ~~ p-value ~ .(ad$aov.tab$`Pr(>F)`[1])))
-  
-  return(plot_out)
-}
-
 
 
 ######################### Differential Abundance #########################
