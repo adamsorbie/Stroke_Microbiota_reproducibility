@@ -1,29 +1,45 @@
 import seaborn as sns 
 import pandas as pd 
 import numpy as np
-import zipfile 
 from skbio.stats import distance
 from scipy.stats import mannwhitneyu
 from statannotations.Annotator import Annotator
 from sklearn.manifold import MDS
 import matplotlib.pyplot as plt
+# suppress copy from slice warning as it's not relevant here
 pd.options.mode.chained_assignment = None
 
 ## FUNCTIONS
 
 # calculate unpaired wilcoxon - only required if manually adding p-vals 
 def wilcox_test(df, metric, group_col, groups):
+    """
+    :param  pandas.Dataframe df: dataframe containing alpha diversity results
+    :param string metric: Metric to test e.g. Richness
+    :param string group_col: Column name containing groups to test
+    :param list groups: list of groups being compared
+    :return: results of mannwhitney U test from scipy
+    """
     x = df[df[group_col] == groups[0]][metric]
     y = df[df[group_col] == groups[1]][metric]
     return mannwhitneyu(x, y)  
 
 # get identifier from unzipped qiime2 artifact
 def get_zip_name(zipobj):
+    """
+    :param  zipfile object zipobj: zipfile object returned by zipfile.ZipFile function
+    :return: filepath of zipfile contents
+    """
     # get path from zipfile
     fullpath = zipobj.namelist()[1]
     return(fullpath.split("/")[0])
 
 def plot_alpha(alphadiv, alpha_metrics, group, cols, labels, pairs):
+    """
+    :param  pandas.Dataframe otu: OTU table to be normalised
+    :param rel: Whether or not to return OTU normalised by relative abundance
+    :return: OTU table normalised by minimum sum scaling or relative abundance
+    """
     for i in alpha_metrics:
         # boxplot
         p = sns.boxplot(x=alphadiv[group], y=alphadiv[i], width=0.4, palette=cols)
@@ -38,6 +54,11 @@ def plot_alpha(alphadiv, alpha_metrics, group, cols, labels, pairs):
         plt.show()
 
 def ordinate(dissimilarity_matrix, metadata, group, ord_method="NMDS",random_seed=42):
+    """
+    :param  pandas.Dataframe otu: OTU table to be normalised
+    :param rel: Whether or not to return OTU normalised by relative abundance
+    :return: OTU table normalised by minimum sum scaling or relative abundance
+    """
     if ord_method in ["NMDS", "PCoA", "MDS"]:
         if ord_method == "NMDS":
             # initiate MDS object
@@ -70,6 +91,11 @@ def ordinate(dissimilarity_matrix, metadata, group, ord_method="NMDS",random_see
     return metadata_plot, p_res
 
 def plot_beta_div(plot_df, permanova_res, group, cols, ord_method="NMDS"):
+    """
+    :param  pandas.Dataframe otu: OTU table to be normalised
+    :param rel: Whether or not to return OTU normalised by relative abundance
+    :return: OTU table normalised by minimum sum scaling or relative abundance
+    """
     # define axes names
     if ord_method == "NMDS":
         axes = ["NMDS1", "NMDS2"]
@@ -79,7 +105,7 @@ def plot_beta_div(plot_df, permanova_res, group, cols, ord_method="NMDS"):
     # save annotation text with pval and r2 to simplify code below
     annotation =  "r2= " + str(permanova_res["R2"]) + "\n" + "p= "  + str(permanova_res["p-value"])
     # plot NMDS and add p-value and r2
-    p = sns.scatterplot(data=plot_df, x=axes[0], y=axes[1],hue="Group", palette=cols, s=80, alpha=0.8)
+    p = sns.scatterplot(data=plot_df, x=axes[0], y=axes[1],hue=group, palette=cols, s=80, alpha=0.8)
     p.legend(loc='center left', bbox_to_anchor=(1, 0.5))
     # add label with x,y coordinates
     x_coord = max(plot_df[axes[0]]) * 0.75
@@ -92,6 +118,11 @@ def plot_beta_div(plot_df, permanova_res, group, cols, ord_method="NMDS"):
 
     
 def format_taxonomy(taxonomy, col):
+    """
+    :param  pandas.Dataframe otu: OTU table to be normalised
+    :param rel: Whether or not to return OTU normalised by relative abundance
+    :return: OTU table normalised by minimum sum scaling or relative abundance
+    """
     # split into columns for each rank
     taxonomy[["Kingdom","Phylum", "Class", "Order", "Family", "Genus", "Species"]] = taxonomy[col].str.split(';',expand=True)
 	# replace empty cells with nan
@@ -111,12 +142,22 @@ def format_taxonomy(taxonomy, col):
     return taxonomy_format
 
 def add_taxonomy(ancom_res, taxonomy):
+    """
+    :param  pandas.Dataframe otu: OTU table to be normalised
+    :param rel: Whether or not to return OTU normalised by relative abundance
+    :return: OTU table normalised by minimum sum scaling or relative abundance
+    """
     ancom_res_taxa = pd.merge(ancom_res, taxonomy, left_index=True, right_index=True)
     return ancom_res_taxa
 
 
 # this code needs improved
 def highest_classified(ancom_res, taxcol):
+    """
+    :param  pandas.Dataframe otu: OTU table to be normalised
+    :param rel: Whether or not to return OTU normalised by relative abundance
+    :return: OTU table normalised by minimum sum scaling or relative abundance
+    """
     # get and add highest classified taxonomy 
     tax_format = format_taxonomy(ancom_res[[taxcol]], col=taxcol)
     # get genus level taxonomy
@@ -125,11 +166,21 @@ def highest_classified(ancom_res, taxcol):
     return ancom_res
 
 def pseudo_asv(ancom_res):
+    """
+    :param  pandas.Dataframe otu: OTU table to be normalised
+    :param rel: Whether or not to return OTU normalised by relative abundance
+    :return: OTU table normalised by minimum sum scaling or relative abundance
+    """
     pseudo_asvs = [f'ASV_{i}' for i in range(1, len(ancom_res.index) + 1)]
     ancom_res.index = pseudo_asvs
     return ancom_res
     
-def plot_ancom(ancom, metadata, taxonomy,groups, cols, taxcol="Taxon"):
+def plot_ancom(ancom, taxonomy,groups, cols, taxcol="Taxon"):
+    """
+    :param  pandas.Dataframe otu: OTU table to be normalised
+    :param rel: Whether or not to return OTU normalised by relative abundance
+    :return: OTU table normalised by minimum sum scaling or relative abundance
+    """
     # add taxonomy 
     ancom_tax = add_taxonomy(ancom, taxonomy)
     # convert q-val and FC to numeric (changed after merging with taxonomy)

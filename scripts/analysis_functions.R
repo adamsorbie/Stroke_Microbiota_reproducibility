@@ -1,7 +1,7 @@
 if(!require("pacman")){
   install.packages("pacman", repos = "http://cran.us.r-project.org")
 }
-pacman::p_load(BiocManager, tidyverse, ggpubr, rstatix, picante, 
+pacman::p_load(BiocManager, tidyverse, ggpubr, ggsci, rstatix, picante, 
                phyloseq,vegan, ANCOMBC, phangorn, GUniFrac, zoo)
 
 ######################### DATA WRANGLING #########################  
@@ -170,13 +170,15 @@ xyform <- function (y_var, x_vars) {
 }
 
 # plot boxplot with stats
-plot_boxplot <- function(df, variable_col, value_col, 
-                         fill_var="fill", comparisons_list, xlab, ylab, 
-                         p_title=NULL, multiple_groups=FALSE, col_palette,
-                         group.order=NULL, paired=FALSE, ...){
+plot_boxplot <- function(df, variable_col, value_col, comparisons_list,
+                         fill_var=variable_col, xlab=variable_col, 
+                         ylab=value_col, p_title=NULL, multiple_groups=FALSE, 
+                         col_palette=NULL,group.order=NULL, paired=FALSE, ...){
   # extend color palette with transparent value - required due to way we are 
   # layering plot 
-  
+  if (is.null(col_palette)){
+    col_palette <- pal_npg()(length(unique(df[, variable_col])))
+  }
   col_palette <- c(col_palette, "transparent")
   
   if (!is.null(group.order)){
@@ -227,7 +229,7 @@ plot_boxplot <- function(df, variable_col, value_col,
   
   # aes string accepts strings as column names, this code plots boxplot and adds error bars
   plot <- ggplot(df, aes_string(x=variable_col, y=value_col, 
-                                fill = variable_col, color=variable_col )) + 
+                                fill = variable_col, color=variable_col)) + 
     geom_boxplot(color="black", alpha=0.8,outlier.shape=5, outlier.size=1) + 
     geom_point(size = 1.5, position = position_jitterdodge()) + 
     labs(x=xlab, y=ylab) + 
@@ -442,39 +444,32 @@ add_taxonomy_da <- function(ps, list_da_asvs, da_res) {
 ancom_da <- function(ps, formula, group, ord=NULL, zero_thresh=0.3, level="ASV") {
   
   if (!is.null(ord)){
-    group_levels <- levels(get_variable(ps, group))
-    sample_data(ps)[[group]] <- factor(group_levels, levels = ord)
+    sample_data(ps)[[group]] <- factor(sample_data(ps)[[group]], levels = ord)
   }
   
-  if (level %in% c("Phylum", "Class", "Order", "Family", "Genus", "ASV"){
+  if (level %in% c("Phylum", "Class", "Order", "Family", "Genus", "ASV")){
     ps_f <- format_taxonomy(ps)
+    
       if (level != "ASV") {
-        ps_f <- tax_glom(GlobalPatterns, taxrank=level)
+        ps_f <- tax_glom(ps_f, taxrank=level)
       }
   
     res <- ancombc(phyloseq = ps_f, formula = formula, p_adj_method = "BH", 
                    prv_cut = zero_thresh, group = group, struc_zero = TRUE, 
                    neg_lb = FALSE, tol = 1e-5, max_iter = 100, conserve = TRUE, 
                    alpha = 0.05, global = FALSE)
-<<<<<<< HEAD
-    
+
     res_df <- data.frame(
-      # temp fix for ancom version diffs
+      # temp fix for ancom version differences
       ASV = row.names(res$res[[1]]),
       lfc = unlist(res$res[[1]]),
-=======
-  
-    res_df <- data.frame(
-      ASV = row.names(res$res$lfc),
-      lfc = unlist(res$res$lfc),
->>>>>>> 0910f2e38870d7f38f46e409e3756ad14622e428
       se = unlist(res$res$se),
       W = unlist(res$res$W),
       pval = unlist(res$res$p_val),
       qval = unlist(res$res$q_val),
       da = unlist(res$res$diff_abn)) %>% 
       mutate(Log2FC = log2(exp(lfc)))
-  
+    
     res_da <- res_df %>%
       filter(da == T)
   

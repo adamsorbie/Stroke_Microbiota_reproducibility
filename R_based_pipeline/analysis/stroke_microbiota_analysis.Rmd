@@ -247,7 +247,7 @@ object and the column name of the grouping variable is required.
 
 
 ```{r}
-res_ancom <- ancom_da(ps_norm, formula = "Group", group = "Group", level = "Family")
+res_ancom <- ancom_da(ps_norm, formula = "Group", group = "Group", ord=c("Stroke", "Sham"))
 ```
 To visualise differentially abundant taxa, we provide a function which calculates
 fold change of significant taxa from above and plots diverging dot plot coloured by 
@@ -258,7 +258,7 @@ an ordered vector of the group levels e.g. ```c("Sham", "Stroke")```. Additional
 we can provide the group colours to make interpretation easier. 
 
 ```{r}
-p <- plot_da(res_ancom, groups = c("Sham", "Stroke"), cols=colours) 
+p <- plot_da(res_ancom, groups = c("Sham", "Stroke"),  cols=colours) 
 p
 #ggsave("ancombc_da.pdf", p, device = "pdf",dpi=300, width = 8, height = 9)
 ```

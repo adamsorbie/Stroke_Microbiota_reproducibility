@@ -31,8 +31,6 @@ if (RIGHT(opt$out, 1) != "/") {
   opt$out <- paste0(opt$out, "/")
 }
 
-opt_parser = OptionParser(option_list=option_list)
-opt = parse_args(opt_parser)
 
 if (is.null(opt$path)){
   print_help(opt_parser)
@@ -54,7 +52,10 @@ dir.create(opt$out)
 
 print("Plotting quality profiles")
 qc_F <- plotQualityProfile(fnFs, aggregate=TRUE)
-ggsave(paste(opt$out,"quality_profile_f.jpg", sep="/"), qc_F, device = "jpeg", dpi = 200)
+dat_F <- qc_F$data
+#x <- qc_F + geom_vline(xintercept = 240, linetype=2, color="red")
+ggsave(paste(opt$out,"quality_profile_f2.png", sep="/"), x, device = "png", dpi = 300)
 
 qc_R <- plotQualityProfile(fnRs, aggregate=TRUE)
-ggsave(paste(opt$out,"quality_profile_r.jpg", sep="/"), qc_R, device = "jpeg", dpi = 200)
+#y <- qc_R + geom_vline(xintercept = 220, linetype=2, color="red")
+ggsave(paste(opt$out,"quality_profile_r.png", sep="/"), y, device = "png", dpi = 300)
