@@ -425,7 +425,7 @@ calc_betadiv <- function(ps, dist, ord_method="NMDS") {
       dist_metric <- distance(ps, dist)
       ord <- ordinate(ps, ord_method, dist_metric)
       return_list <- list("Distance_Matrix" = dist_metric, 
-                          "Ordination" = ord[[values]])
+                          "Ordination" = ord)
       return(return_list)
     }
     else if (dist %in% c("gunifrac")) {
@@ -434,7 +434,7 @@ calc_betadiv <- function(ps, dist, ord_method="NMDS") {
       ord <- ordinate(ps, ord_method, gu)
       
       return_list <- list("Distance_Matrix" = gu, 
-                          "Ordination" = ord[[values]])
+                          "Ordination" = ord)
       return(return_list)
     }
     else {
