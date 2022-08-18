@@ -50,8 +50,7 @@ if [ "$paired_end" = true ]; then
      ${sample}_S1_L001_R1_001.fastq.gz ${sample}_S1_L001_R2_001.fastq.gz \
      >> trimmed_primer/cutadapt_primer_trimming_stats.txt 2>&1
   done
-fi 
-else if [ "$paired_end" = false ]; then
+elif [ "$paired_end" = false ]; then
   for sample in $(ls *.fastq.gz | cut -f1 -d"_");
   do
     echo "Trimming sample: $sample"
