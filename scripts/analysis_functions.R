@@ -142,202 +142,6 @@ transform <- function(ps, transform="mss") {
  
 }
 
-######################### PLOTTING AND STATS #########################
-
-# calculate colour palettes
-calc_pal <- function(ps, group_variable){
-  # update function to accept nonps objects 
-  meta <- meta_to_df(ps)
-  groups <- unique(meta[, group_variable])
-  
-  if (length(groups) < 10){
-    pal <- pal_npg()(length(groups))
-  }
-  else {
-    print("Exceeded colour palette limit, use custom palette")
-  }
-}
-
-# calculate adonis R2 and p-value
-phyloseq_adonis <- function(ps, dist_matrix, factor, ...) {
-  
-  
-  meta_df <- meta_to_df(ps) 
-  
-  if(sum(is.na(meta_df[[factor]])) > 0){
-    print("metadata contains NAs, remove these samples with subset_samples
-          before continuing")
-    return (NULL)
-  } else {
-    ps_ad <- adonis(unname(dist_matrix) ~ meta_df[[factor]],
-                    data = meta_df, ...)
-    return(ps_ad)
-  }
-}
-
-
-# create statistical formula 
-xyform <- function (y_var, x_vars) {
-  # y_var: a length-one character vector
-  # x_vars: a character vector of object names
-  as.formula(sprintf("%s ~ %s", y_var, paste(x_vars, collapse = " + ")))
-}
-
-# plot boxplot with stats
-plot_boxplot <- function(df, variable_col, value_col, comparisons_list,
-                         fill_var=variable_col, xlab=variable_col, 
-                         ylab=value_col, p_title=NULL, multiple_groups=FALSE, 
-                         col_palette=NULL,group.order=NULL, paired=FALSE, ...){
-  # extend color palette with transparent value - required due to way we are 
-  # layering plot 
-  if (is.null(col_palette)){
-    col_palette <- pal_npg()(length(unique(df[, variable_col])))
-  }
-  col_palette <- c(col_palette, "transparent")
-  
-  if (!is.null(group.order)){
-    df[, variable_col] <- factor(df[, variable_col], levels = group.order)
-  }
-  
-  formula <- xyform(value_col, variable_col)
-  
-  if (multiple_groups == TRUE) {
-    if (paired == TRUE){
-      stat_variance <- df %>% 
-        friedman_test(formula)
-      stat_test <- df %>%  
-        pairwise_wilcox_test(formula, comparisons = comparisons_list,
-                             p.adjust.method = "BH", paired=TRUE) %>% 
-        add_significance() %>% 
-        add_xy_position(x = variable_col) %>% 
-        filter(p.adj < 0.05)
-    }
-    else {
-      stat_variance <- df %>% 
-        kruskal_test(formula)
-      stat_test <- df %>%  
-        pairwise_wilcox_test(formula, comparisons = comparisons_list,
-                             p.adjust.method = "BH") %>% 
-        add_significance() %>% 
-        add_xy_position(x = variable_col) %>% 
-        filter(p.adj < 0.05)
-    }
-  } 
-  else if (multiple_groups == FALSE) {
-    if (paired == TRUE){
-      stat_test <- df %>% 
-        wilcox_test(formula, paired=TRUE) %>% 
-        add_significance() %>% 
-        add_xy_position(x = variable_col) %>% 
-        filter(p < 0.05)
-    }
-    else {
-      stat_test <- df %>% 
-        wilcox_test(formula) %>% 
-        add_significance() %>% 
-        add_xy_position(x = variable_col) %>% 
-        filter(p < 0.05) 
-    }
-
-  }
-  
-  # aes string accepts strings as column names, this code plots boxplot and adds error bars
-  plot <- ggplot(df, aes_string(x=variable_col, y=value_col, 
-                                fill = variable_col, color=variable_col)) + 
-    geom_boxplot(color="black", alpha=0.8,outlier.shape=5, outlier.size=1) + 
-    geom_point(size = 1.5, position = position_jitterdodge()) + 
-    labs(x=xlab, y=ylab) + 
-    stat_boxplot(color="black", geom = "errorbar", width=0.2) 
-  # creates new 'finalised plot' and adds statistical significance, labels and adjusts theme and title
-  final_plot <- plot + 
-    theme_classic2() + 
-    ggtitle(p_title) + 
-    theme(axis.text.x = element_text(size = 14),
-          axis.text.y = element_text(size=14),
-          axis.title.x = element_text(size=18),
-          axis.title.y = element_text(size=18),
-          axis.line = element_line(colour = "black"), 
-          panel.grid.major = element_blank(), 
-          panel.grid.minor = element_blank(), 
-          panel.background = element_blank(),
-          panel.border = element_blank(), 
-          plot.title = element_text(hjust = 0.5), 
-          legend.position = "None") +
-    scale_fill_manual(values = col_palette) + 
-    scale_color_manual(values = col_palette) + 
-    rotate_x_text(angle = 45)
-  
-  if (dim(stat_test)[1] == 0){
-    plot_out <- final_plot
-  }
-  else {
-    if (multiple_groups == T){
-      plot_out <- final_plot +
-        stat_pvalue_manual(stat_test, label = "p.adj.signif", hide.ns = T,
-                           inherit.aes = FALSE, ...)
-    }
-    else {
-      plot_out <- final_plot +
-        stat_pvalue_manual(stat_test, label = "p.signif", hide.ns = T,
-                           inherit.aes = FALSE, ...)
-    }
-  }
-  
-  return(plot_out)
-}
-
-# plot scatter plot with correlation if desired
-plot_scatter <- function(df, x, y, point_color, 
-                         line_color, fill_color, 
-                         xlabel, ylabel, 
-                         corr.method=NULL, ...) {
-  p <- ggplot(data=df, mapping = aes(x = .data[[ x ]], y = .data[[ y ]] )) +
-    geom_point(aes(color=point_color), size=2.5) +
-    geom_smooth(method = "lm", color=line_color, fill=fill_color) +
-    theme_bw() + 
-    theme(legend.position = "None", 
-          axis.title.x = element_text(size=14),
-          axis.text.x = element_text(size=12),
-          axis.title.y = element_text(size=14),
-          axis.text.y = element_text(size=12)) + 
-    xlab(xlabel) + 
-    ylab(ylabel)
-  
-  if (!is.null(corr.method)) {
-    p <- p + stat_cor(method=corr.method, ...)
-    return(p)
-  }
-  else {
-    return(p)
-  }
-}
-
-
-plot_beta_div <- function(ps, ordination, dist_matrix, group_variable, add_ellipse=FALSE, cols=NULL) {
-  # add support for colors and ellipses
-  # significance
-  if (is.null(cols)){
-    cols <- calc_pal(ps, group_variable)
-  }
-  ad <- phyloseq_adonis(ps, dist_matrix, group_variable)
-  
-  # check sample data dimensions >1 otherwise phyloseq 
-  # fails to colour samples due to bug:https://github.com/joey711/phyloseq/issues/541 
-  if (dim(sample_data(ps))[2] <2) {
-    # add repeat of first column as dummy 
-    sample_data(ps)[ , 2] <- sample_data(ps)[ ,1]
-  }
-  plot <- plot_ordination(ps, ordination , color=group_variable)
-  plot$layers[[1]] <- NULL
-  
-  plot_out <- plot + geom_point(size=3, alpha=0.75) +
-    theme_bw() + 
-    scale_fill_manual(values=cols) +
-    scale_color_manual(values = cols) +
-    labs(caption = bquote(Adonis~R^2 ~ .(round(ad$aov.tab$R2[1], 2)) ~~ p-value ~ .(ad$aov.tab$`Pr(>F)`[1])))
-  
-  return(plot_out)
-}
 
 ######################### ALPHA DIVERSITY #########################
 
@@ -508,8 +312,209 @@ ancom_da <- function(ps, formula, group, ord=NULL, zero_thresh=0.3, level="ASV")
   } 
 }
 
+######################### PLOTTING AND STATS #########################
 
-plot_da <- function(ancom_da, groups, cols) {
+# calculate colour palettes
+calc_pal <- function(ps, group_variable){
+  # update function to accept nonps objects 
+  meta <- meta_to_df(ps)
+  groups <- unique(meta[, group_variable])
+  
+  if (length(groups) < 10){
+    pal <- pal_npg()(length(groups))
+  }
+  else {
+    print("Exceeded colour palette limit, use custom palette")
+  }
+}
+
+# calculate adonis R2 and p-value
+phyloseq_adonis <- function(ps, dist_matrix, factor, ...) {
+  
+  
+  meta_df <- meta_to_df(ps) 
+  
+  if(sum(is.na(meta_df[[factor]])) > 0){
+    print("metadata contains NAs, remove these samples with subset_samples
+          before continuing")
+    return (NULL)
+  } else {
+    ps_ad <- adonis(unname(dist_matrix) ~ meta_df[[factor]],
+                    data = meta_df, ...)
+    return(ps_ad)
+  }
+}
+
+
+# create statistical formula 
+xyform <- function (y_var, x_vars) {
+  # y_var: a length-one character vector
+  # x_vars: a character vector of object names
+  as.formula(sprintf("%s ~ %s", y_var, paste(x_vars, collapse = " + ")))
+}
+
+# plot boxplot with stats
+plot_boxplot <- function(df, variable_col, value_col, comparisons_list,
+                         fill_var=variable_col, xlab=variable_col, 
+                         ylab=value_col, p_title=NULL, multiple_groups=FALSE, 
+                         cols=NULL,group.order=NULL, paired=FALSE, ...){
+  # extend color palette with transparent value - required due to way we are 
+  # layering plot 
+  if (is.null(cols)){
+    cols <- pal_npg()(length(unique(df[, variable_col])))
+  }
+  cols <- c(cols, "transparent")
+  
+  if (!is.null(group.order)){
+    df[, variable_col] <- factor(df[, variable_col], levels = group.order)
+  }
+  
+  formula <- xyform(value_col, variable_col)
+  
+  if (multiple_groups == TRUE) {
+    if (paired == TRUE){
+      stat_variance <- df %>% 
+        friedman_test(formula)
+      stat_test <- df %>%  
+        pairwise_wilcox_test(formula, comparisons = comparisons_list,
+                             p.adjust.method = "BH", paired=TRUE) %>% 
+        add_significance() %>% 
+        add_xy_position(x = variable_col) %>% 
+        filter(p.adj < 0.05)
+    }
+    else {
+      stat_variance <- df %>% 
+        kruskal_test(formula)
+      stat_test <- df %>%  
+        pairwise_wilcox_test(formula, comparisons = comparisons_list,
+                             p.adjust.method = "BH") %>% 
+        add_significance() %>% 
+        add_xy_position(x = variable_col) %>% 
+        filter(p.adj < 0.05)
+    }
+  } 
+  else if (multiple_groups == FALSE) {
+    if (paired == TRUE){
+      stat_test <- df %>% 
+        wilcox_test(formula, paired=TRUE) %>% 
+        add_significance() %>% 
+        add_xy_position(x = variable_col) %>% 
+        filter(p < 0.05)
+    }
+    else {
+      stat_test <- df %>% 
+        wilcox_test(formula) %>% 
+        add_significance() %>% 
+        add_xy_position(x = variable_col) %>% 
+        filter(p < 0.05) 
+    }
+    
+  }
+  
+  # aes string accepts strings as column names, this code plots boxplot and adds error bars
+  plot <- ggplot(df, aes_string(x=variable_col, y=value_col, 
+                                fill = variable_col, color=variable_col)) + 
+    geom_boxplot(color="black", alpha=0.8,outlier.shape=5, outlier.size=1) + 
+    geom_point(size = 1.5, position = position_jitterdodge()) + 
+    labs(x=xlab, y=ylab) + 
+    stat_boxplot(color="black", geom = "errorbar", width=0.2) 
+  # creates new 'finalised plot' and adds statistical significance, labels and adjusts theme and title
+  final_plot <- plot + 
+    theme_classic2() + 
+    ggtitle(p_title) + 
+    theme(axis.text.x = element_text(size = 14),
+          axis.text.y = element_text(size=14),
+          axis.title.x = element_text(size=18),
+          axis.title.y = element_text(size=18),
+          axis.line = element_line(colour = "black"), 
+          panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank(), 
+          panel.background = element_blank(),
+          panel.border = element_blank(), 
+          plot.title = element_text(hjust = 0.5), 
+          legend.position = "None") +
+    scale_fill_manual(values = cols) + 
+    scale_color_manual(values = cols) + 
+    rotate_x_text(angle = 45)
+  
+  if (dim(stat_test)[1] == 0){
+    plot_out <- final_plot
+  }
+  else {
+    if (multiple_groups == T){
+      plot_out <- final_plot +
+        stat_pvalue_manual(stat_test, label = "p.adj.signif", hide.ns = T,
+                           inherit.aes = FALSE, ...)
+    }
+    else {
+      plot_out <- final_plot +
+        stat_pvalue_manual(stat_test, label = "p.signif", hide.ns = T,
+                           inherit.aes = FALSE, ...)
+    }
+  }
+  
+  return(plot_out)
+}
+
+# plot scatter plot with correlation if desired
+plot_scatter <- function(df, x, y, point_color, 
+                         line_color, fill_color, 
+                         xlabel, ylabel, 
+                         corr.method=NULL, ...) {
+  p <- ggplot(data=df, mapping = aes(x = .data[[ x ]], y = .data[[ y ]] )) +
+    geom_point(aes(color=point_color), size=2.5) +
+    geom_smooth(method = "lm", color=line_color, fill=fill_color) +
+    theme_bw() + 
+    theme(legend.position = "None", 
+          axis.title.x = element_text(size=14),
+          axis.text.x = element_text(size=12),
+          axis.title.y = element_text(size=14),
+          axis.text.y = element_text(size=12)) + 
+    xlab(xlabel) + 
+    ylab(ylabel)
+  
+  if (!is.null(corr.method)) {
+    p <- p + stat_cor(method=corr.method, ...)
+    return(p)
+  }
+  else {
+    return(p)
+  }
+}
+
+
+plot_beta_div <- function(ps, ordination, dist_matrix, group_variable, add_ellipse=FALSE, cols=NULL) {
+  # add support for colors and ellipses
+  # significance
+  if (is.null(cols)){
+    cols <- calc_pal(ps, group_variable)
+  }
+  ad <- phyloseq_adonis(ps, dist_matrix, group_variable)
+  
+  # check sample data dimensions >1 otherwise phyloseq 
+  # fails to colour samples due to bug:https://github.com/joey711/phyloseq/issues/541 
+  if (dim(sample_data(ps))[2] <2) {
+    # add repeat of first column as dummy 
+    sample_data(ps)[ , 2] <- sample_data(ps)[ ,1]
+  }
+  plot <- plot_ordination(ps, ordination , color=group_variable)
+  plot$layers[[1]] <- NULL
+  
+  plot_out <- plot + geom_point(size=3, alpha=0.75) +
+    theme_bw() + 
+    scale_fill_manual(values=cols) +
+    scale_color_manual(values = cols) +
+    labs(caption = bquote(Adonis~R^2 ~ .(round(ad$aov.tab$R2[1], 2)) ~~ p-value ~ .(ad$aov.tab$`Pr(>F)`[1])))
+  
+  return(plot_out)
+}
+
+
+plot_da <- function(ancom_da, groups, cols=NULL) {
+  
+  if (is.null(cols)){
+    cols <- pal_npg()(length(groups))
+  }
   
   ancom_da_plot <- ancom_da %>% 
     mutate(enriched_in = ifelse(Log2FC > 0, groups[2], 
@@ -537,6 +542,8 @@ plot_da <- function(ancom_da, groups, cols) {
   
   print(p)
 }
+
+
 
 
 
