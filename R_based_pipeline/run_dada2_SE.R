@@ -9,7 +9,7 @@
 if(!require("pacman")){
   install.packages("pacman", repos = "http://cran.us.r-project.org")
 }
-pacman::p_load(dada2, Biostrings, optparse, ggpubr, stringr, tictoc, DECIPHER)
+pacman::p_load(dada2, Biostrings, optparse, ggpubr, stringr, tictoc, DECIPHER, parallel)
 
 ### CMD OPTIONS
 
