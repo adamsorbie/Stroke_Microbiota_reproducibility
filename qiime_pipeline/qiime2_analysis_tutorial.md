@@ -90,82 +90,38 @@ Note that compared to the R-based pipeline, the qiime2 pipeline runs very slow, 
 
 ## Data Analysis 
 
-As with the R-based pipeline, we also provide a short tutorial on conducting the analysis in Qiime2. In future we hope to have a fully python-based analysis, based on the Qiime2 artifact API and seaborn for visualisation however, for now we will stick to command-line Qiime2 for analysis. 
+As with the R-based pipeline, we also provide a short tutorial on conducting the analysis in Qiime2. 
 
-## Data Normalisation
+### QC
 
-Note that unlike the R-based analysis and indeed others, data normalisation is not a separate step in Qiime2, rather it is carried out internally when calculating alpha or beta diversity for example. Results obtained from this step may differ slightly to those from the other pipeline as Qiime2 uses rarefaction for normalisation. We generally recommend against rarefaction - particularly for differential abundance analysis - based on the conclusions of this [paper](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1003531). Despite this, rarefaction is still a valid and robust method for diversity analyses   
-as evidence [here](https://pubmed.ncbi.nlm.nih.gov/28253908/). 
-
-
-## Alpha and Beta Diversity
-
- 
-
-Firstly, we will calculate various alpha and beta-diversity metrics. Luckily Qiime2 makes this very easy and in just a couuple of commands we can calculate non-phylogenetic alpha and beta-diversity metrics (e.g. Richness, Bray-Curtis). Before we do this however, we should remove the negative control sample from our qza file like so: 
-
+Here we want to check everything worked ok. First we will view and inspect the taxonomy to ensure the majority of taxa are classified. Next we will remove blank controls from our metadata and feature table and finally normalize the feature table using minimum sum scaling. 
 ```
-# remove from metadata manually e.g. in excel or text editor and provide the edited file as the metadata argument. 
-qiime feature-table filter-samples --i-table feature-table-filt-nocontrol.qza --m-metadata-file Metadata-16S-sequenced_wo_ctrls.txt --o-filtered-table feature-table-filt-nocontrols.qza
-```
+# View and inspect taxonomy 
+qiime tools view taxonomy.qzv
+# remove controls from metadata manually and provide edited file as metadata argument. qiime feature-table filter-samples --i-table feature-table-filt.qza --m-metadata-file Metadata-16S-sequenced_wo_ctrls.txt --o-filtered-table feature-table-filt-nocontrols.qza
+# normalize feature table using minimum sum scaling
+bash normalize.sh feature-table-filt-nocontrols.qza
+# outputs normalized feature table: feature-table-norm.qza as well as log file
+````
+### Alpha and Beta-diversity 
 
-Now we can go ahead and calculate our alpha and beta-diversity metrics
+Now we can calculate various alpha and beta-diversity metrics. Note that Qiime2 uses rarefaction by default rather than mss, so here we just provide the library size reads were scaled to as the rarefaction depth, meaning no further scaling will take place. 
 ```
-qiime diversity core-metrics --i-table q2_out/feature-table-filt.qza --m-metadata-file Metadata-16S-sequenced_wo_ctrls.txt --p-sampling-depth 120000 --output-dir core-metrics-results
-```
-and also phylogenetic (Faith's PD and Unifrac): 
-```
-qiime diversity core-metrics-phylogenetic --i-table q2_out/feature-table-filt.qza --i-phylogeny q2_out/rooted-tree.qza --m-metadata-file Metadata-16S-sequenced_wo_ctrls.txt --p-sampling-depth 120000 --output-dir core-metrics-phylo-results 
-```
-Unfortunately GUnifrac is not included in the core phylogenetic metrics so we have to run a further command to obtain these results: 
+# Core phylogenetic methods 
+qiime diversity core-metrics-phylogenetic --i-table feature-table-norm.qza --i-phylogeny rooted-tree.qza --m-metadata-file Metadata-16S-sequenced_wo_ctrls.txt --p-sampling-depth 139010 --output-dir ./core-metrics-phylo-results 
 
-```
-qiime diversity beta-phylogenetic --i-table q2_out/feature-table-filt.qza --i-phylogeny q2_out/rooted-tree.qza  --p-metric 'generalized_unifrac' --p-alpha 0.5 --o-distance-matrix core-metrics-phylo-results/GUnifrac_distance_matrix.qza 
-```
-### Plotting and Statistics 
-
-#### Alpha diversity
-
-##### Richness 
-
-```
-qiime diversity alpha-group-significance --i-alpha-diversity core-metrics-results/observed_features_vector.qza --m-metadata-file Metadata-16S-sequenced_wo_ctrls.txt --o-visualization core-metrics-results/richness_statistics.qzv
+# GUnifrac 
+qiime diversity beta-phylogenetic --i-table feature-table-norm.qza --i-phylogeny rooted-tree.qza  --p-metric 'generalized_unifrac' --p-alpha 0.5 --o-distance-matrix core-metrics-phylo-results/GUnifrac_distance_matrix.qza 
 ```
 
-##### Shannon
+### Differential abundance 
 
-Note that this calculates Shannon diversity and not Shannon effective diversity. 
-
+Finally, we will calculate differentially abundant taxa using ANCOM-BC
 ```
-qiime diversity alpha-group-significance --i-alpha-diversity core-metrics-results/shannon_vector.qza --m-metadata-file Metadata-16S-sequenced_wo_ctrls.txt --o-visualization core-metrics-results/Shannon_statistics.qzv
-```
+# Differential abundance 
 
-##### Faith's PD
-
-```
-qiime diversity alpha-group-significance --i-alpha-diversity core-metrics-phylo-results/faith_pd_vector.qza --m-metadata-file Metadata-16S-sequenced_wo_ctrls.txt --o-visualization core-metrics-phylo-results/faiths_pd_statistics.qzv
+qiime ancombc ancombc --i-table feature-table-norm.qza --m-metadata-file Metadata-16S-sequenced_wo_ctrls.txt --p-formula "Group" --p-p-adj-method 'BH' --p-zero-cut 0.7 --p-lib-cut 0 --p-group "Group" --p-struc-zero True --p-neg-lb False --p-tol 1e-05 --p-max-iter 100 --p-conserve True --p-alpha 0.05 --o-differentials ANCOM/ancom-bc_res.qza
 ```
 
-#### Beta-diversity
+Statistical analysis and plotting is performed using python. The associated notebook and tutorial can be found [here](https://github.com/adamsorbie/Stroke_Microbiota_reproducibility/blob/main/qiime_pipeline/analysis/plotting_python.ipynb) 
 
-```
-qiime diversity beta-group-significance --i-distance-matrix core-metrics-phylo-results/GUnifrac_distance_matrix.qza --m-metadata-file Metadata-16S-sequenced_wo_ctrls.txt --m-metadata-column Group --o-visualization core-metrics-phylo-results/Gunifrac-group-significance.qzv
-```
-
-## Differentially abundant taxa
-
-```
-mkdir ANCOM 
-```
-
-```
-qiime feature-table filter-features --i-table q2_out/feature-table-filt.qza --p-min-samples 6 --o-filtered-table ANCOM/feature-table-prev-filt.qza
-```
-
-```  
-qiime composition add-pseudocount --i-table ANCOM/feature-table-prev-filt.qza --o-composition-table ANCOM/feature-table-ANCOM.qza
-```
-
-```
-qiime composition ancom --i-table ANCOM/feature-table-ANCOM.qza --m-metadata-file Metadata-16S-sequenced_wo_ctrls.txt --m-metadata-column Group --o-visualization ANCOM/ancom_group.qzv
-```
