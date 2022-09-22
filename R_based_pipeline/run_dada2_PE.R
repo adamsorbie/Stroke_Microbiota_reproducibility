@@ -249,6 +249,9 @@ asv_taxa <- t(sapply(taxa_classify, function(x) {
 
 ## write output files
 
+# remove illumina naming convention from sample name
+colnames(seqtab_chim_abun_filt) <- gsub("_S1_L001", colnames(seqtab_chim_abun_filt))
+
 # create vector to contain headers
 asv_headers <- vector(dim(seqtab_chim_abun_filt) [2], mode = "character")
 # generate row and column names 
