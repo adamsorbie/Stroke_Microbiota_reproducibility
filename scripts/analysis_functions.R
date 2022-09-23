@@ -356,14 +356,16 @@ calc_pal <- function(ps, group_variable) {
 # calculate adonis R2 and p-value
 phyloseq_adonis <- function(ps, dist_matrix, group_variable, ...) {
   meta_df <- meta_to_df(ps)
-  print(meta_df)
   if (sum(is.na(meta_df[[group_variable]])) > 0) {
     print("metadata contains NAs, remove these samples with subset_samples
           before continuing")
     return (NULL)
   } else {
-    ps_ad <- adonis(dist_matrix ~ meta_df[[group_variable]],
-                    data = meta_df, ...)
+    # convert distance matix object to string
+    dist_str <- deparse(substitute(dist_matrix))
+    # define formula
+    form <- as.formula(paste(dist_str, group_variable, sep="~"))
+    ps_ad <- adonis2(form, data = meta_df, ...)
     return(ps_ad)
   }
 }
@@ -559,8 +561,8 @@ plot_scatter <- function(df,
 
 
 plot_beta_div <- function(ps,
-                          ordination,
                           dist_matrix,
+                          ordination,
                           group_variable,
                           add_ellipse = FALSE,
                           cols = NULL) {
@@ -585,11 +587,11 @@ plot_beta_div <- function(ps,
     theme_bw() +
     scale_fill_manual(values = cols) +
     scale_color_manual(values = cols) +
-    labs(caption = bquote(Adonis ~ R ^ 2 ~ .(round(ad$aov.tab$R2[1], 2)) ~
-                            ~ p - value ~ .(ad$aov.tab$`Pr(>F)`[1])))
+    labs(caption = bquote(Adonis ~ R ^ 2 ~ .(round(ad$R2[1], 2)) ~
+                            ~ p - value ~ .(ad$`Pr(>F)`[1])))
   if (add_ellipse == TRUE){
     plot_out <- plot_out + 
-      geom_polygon(stat = "ellipse", aes(fill = group_variable), alpha = 0.3)
+      geom_polygon(stat = "ellipse", aes(fill = .data [[ group_variable ]] ), alpha = 0.3)
   }
   
   return(plot_out)
