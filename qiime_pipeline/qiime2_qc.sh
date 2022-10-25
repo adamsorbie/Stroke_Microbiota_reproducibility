@@ -55,7 +55,8 @@ qiime cutadapt trim-paired \
    --p-minimum-length $min_len \
    --o-trimmed-sequences demux-paired-end-trimmed.qza \
    --p-cores $threads \
-   --verbose
+   --verbose \
+   &> cutadapt_primer_trimming_stats.txt
 
 
 qiime demux summarize \
