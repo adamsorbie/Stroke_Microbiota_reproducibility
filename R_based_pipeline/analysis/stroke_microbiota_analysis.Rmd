@@ -24,7 +24,7 @@ included the data used in this publication to demonstrate our analysis pipeline.
 
 
 ```{r}
-ps <- import_as_pseq(otu = "../../data/ASV_seqtab_tax.tab",
+ps <- import_as_pseq(asvtab = "../../data/ASV_seqtab_tax.tab",
                 mapping = "../../data/Metadata-16S-sequenced_wo_ctrls.txt",
                 tree = "../../data/ASV_tree.tre")
 ```
@@ -247,7 +247,7 @@ object and the column name of the grouping variable is required.
 
 
 ```{r}
-res_ancom <- ancom_da(ps_norm, formula = "Group", group = "Group", ord=c("Stroke", "Sham"))
+res_ancom <- ancom_da(ps_norm, formula = "Group", group = "Group", ord=c("Sham", "Stroke"))
 ```
 To visualise differentially abundant taxa, we provide a function which calculates
 fold change of significant taxa from above and plots diverging dot plot coloured by 
@@ -260,7 +260,7 @@ we can provide the group colours to make interpretation easier.
 ```{r}
 p <- plot_da(res_ancom, groups = c("Sham", "Stroke"),  cols=colours) 
 p
-#ggsave("ancombc_da.pdf", p, device = "pdf",dpi=300, width = 8, height = 9)
+ggsave("ancombc_da.pdf", p, device = "pdf",dpi=300, width = 8.5, height = 9)
 ```
 
 
