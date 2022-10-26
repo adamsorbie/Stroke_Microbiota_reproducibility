@@ -53,9 +53,9 @@ dir.create(opt$out)
 print("Plotting quality profiles")
 qc_F <- plotQualityProfile(fnFs, aggregate=TRUE)
 dat_F <- qc_F$data
-#x <- qc_F + geom_vline(xintercept = 240, linetype=2, color="red")
-ggsave(paste(opt$out,"quality_profile_f2.png", sep="/"), x, device = "png", dpi = 300)
+
+ggsave(paste(opt$out,"quality_profile_f2.png", sep="/"), qc_F, device = "png", dpi = 300)
 
 qc_R <- plotQualityProfile(fnRs, aggregate=TRUE)
-#y <- qc_R + geom_vline(xintercept = 220, linetype=2, color="red")
-ggsave(paste(opt$out,"quality_profile_r.png", sep="/"), y, device = "png", dpi = 300)
+
+ggsave(paste(opt$out,"quality_profile_r.png", sep="/"), qc_R, device = "png", dpi = 300)
