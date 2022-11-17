@@ -280,61 +280,81 @@ ancom_da <- function(ps,
                      formula,
                      group,
                      ord = NULL,
-                     zero_thresh = 0.3,
-                     level = "ASV") {
+                     zero_thresh = 0.33,
+                     level = NULL,
+                     ...) {
   if (!is.null(ord)) {
     sample_data(ps)[[group]] <-
       factor(sample_data(ps)[[group]], levels = ord)
+  } else {
+    ord <- sort(unique(sample_data(ps)[[group]])) 
   }
   
-  if (level %in% c("Phylum", "Class", "Order", "Family", "Genus", "ASV")) {
-    ps_f <- format_taxonomy(ps)
-    
-    if (level != "ASV") {
-      ps_f <- tax_glom(ps_f, taxrank = level)
-    }
-    
-    res <-
-      ancombc(
-        phyloseq = ps_f,
-        formula = formula,
-        p_adj_method = "BH",
-        prv_cut = zero_thresh,
-        group = group,
-        struc_zero = TRUE,
-        neg_lb = FALSE,
-        tol = 1e-5,
-        max_iter = 100,
-        conserve = TRUE,
-        alpha = 0.05,
-        global = FALSE
+  levels <-
+    c("Phylum",
+      "Class",
+      "Order",
+      "Family",
+      "Genus",
+      "Species")
+  
+  # if level specified check it is valid
+  if (!is.null(level)) {
+    if (!level %in% levels) {
+      stop(
+        paste0(
+          "Not a valid taxonomic rank, please specify from:",
+          levels,
+          ", or leave blank"
+        )
       )
-    
-    res_df <- data.frame(
-      # temp fix for ancom version differences
-      ASV = row.names(res$res[[1]]),
-      lfc = unlist(res$res[[1]]),
-      se = unlist(res$res$se),
-      W = unlist(res$res$W),
-      pval = unlist(res$res$p_val),
-      qval = unlist(res$res$q_val),
-      da = unlist(res$res$diff_abn)
-    ) %>%
-      mutate(Log2FC = log2(exp(lfc)))
-    
-    res_da <- res_df %>%
-      filter(da == T)
-    
-    da_asvs <- res_da$ASV
-    da_tax <- add_taxonomy_da(ps_f, da_asvs, res_da)
-    
-    return(da_tax)
+    }
   }
-  else {
-    print(
-      "Unsupported taxonomic rank: choose from: 'Phylum', 'Class', 'Order', 'Family', 'Genus' or 'ASV' "
+  
+  ps_f <- format_taxonomy(ps)
+  
+  res <-
+    ancombc2(
+      data = ps_f,
+      tax_level = level,
+      fix_formula = formula,
+      p_adj_method = "BH",
+      prv_cut = zero_thresh,
+      group = group,
+      struc_zero = TRUE,
+      neg_lb = FALSE,
+      pseudo_sens = FALSE,
+      global = FALSE,
+      ...
     )
-  }
+  
+  # add support for multiple groups here with global and pairwise tests
+  res_df <- data.frame(
+    # temp fix for ancom version differences
+    ASV = unlist(res$res$taxon),
+    lfc = unlist(res$res$lfc_Group1),
+    se = unlist(res$res$se_Group1),
+    W = unlist(res$res$W_Group1),
+    pval = unlist(res$res$p_Group1),
+    qval = unlist(res$res$q_Group1),
+    da = unlist(res$res$diff_Group1)
+  ) %>%
+    mutate(Log2FC = log2(exp(lfc)))
+  
+  res_da <- res_df %>%
+    filter(da == T)
+  
+  da_asvs <- res_da$ASV
+  da_tax <- add_taxonomy_da(ps_f, da_asvs, res_da)
+  
+  # add group order for easier interpretation
+  reference <- paste(ord[1], "vs", ord[2], sep="_")
+  da_tax <- da_tax %>% 
+    mutate(Group_ord = reference)
+  
+  return(da_tax)
+  
+  
 }
 
 ######################### PLOTTING AND STATS #########################

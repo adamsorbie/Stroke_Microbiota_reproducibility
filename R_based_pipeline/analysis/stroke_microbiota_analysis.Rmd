@@ -99,7 +99,7 @@ Now we have calculated alpha diversity, we can merge this information with
 our metadata to generate a dataframe for plotting. 
 
 ```{r}
-meta <-meta_to_df(ps_norm)
+meta <- smeta_to_df(ps_norm)
 # merge alpha diversity df and metadata by rownames (0)
 alpha_div_meta <- merge(alpha_div, meta, by=0)
 ```
@@ -247,7 +247,8 @@ object and the column name of the grouping variable is required.
 
 
 ```{r}
-res_ancom <- ancom_da(ps_norm, formula = "Group", group = "Group", ord=c("Sham", "Stroke"))
+res_ancom <- ancom_da(ps_norm, formula = "Group", group = "Group", ord=c("Stroke", "Sham"))
+
 ```
 To visualise differentially abundant taxa, we provide a function which calculates
 fold change of significant taxa from above and plots diverging dot plot coloured by 
