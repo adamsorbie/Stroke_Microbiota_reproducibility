@@ -1,12 +1,13 @@
 #!/usr/bin/env Rscript
 # Author: Adam Sorbie
-# Date: 13/09/21
-# Version 0.9.6
+# Date: 21/11/22
+# Version 1.0.0
 
 library(dada2)
 library(optparse)
 library(parallel)
 library(ggplot2)
+
 
 option_list = list(
   make_option(c("-p", "--path"), type="character", default=NULL, 
@@ -17,11 +18,14 @@ option_list = list(
 
 opt_parser <- OptionParser(option_list=option_list)
 opt <- parse_args(opt_parser)
+
 # Functions
 
 RIGHT <- function(x,n){
   substring(x,nchar(x)-n+1)
 }
+
+# Start of script
 
 # check all paths have trailing forward slash 
 if (RIGHT(opt$path, 1) != "/") {
@@ -38,6 +42,10 @@ if (is.null(opt$path)){
        call.=FALSE)
 }
 
+# time analysis
+tic()
+print(paste("QC STARTING", Sys.time(), sep=" "))
+
 path <- opt$path 
 setwd(opt$path)
 
@@ -52,10 +60,16 @@ dir.create(opt$out)
 
 print("Plotting quality profiles")
 qc_F <- plotQualityProfile(fnFs, aggregate=TRUE)
-dat_F <- qc_F$data
 
-ggsave(paste(opt$out,"quality_profile_f2.png", sep="/"), qc_F, device = "png", dpi = 300)
+ggsave(paste(opt$out,"quality_profile.pdf", sep="/"), qc_F, device = "pdf", dpi = 300)
 
 qc_R <- plotQualityProfile(fnRs, aggregate=TRUE)
+ggsave(paste(opt$out,"quality_profile_r.pdf", sep="/"), qc_R, device = "pdf", dpi = 300)
 
-ggsave(paste(opt$out,"quality_profile_r.png", sep="/"), qc_R, device = "png", dpi = 300)
+print(paste("QC COMPLETED", Sys.time(), sep=" "))
+
+sink(paste(opt$out, "parameter_log.txt", sep="/"))
+print(paste0("Filepath: ", opt$path))
+print(paste0("Output: ", opt$out))
+toc()
+closeAllConnections() 
