@@ -30,7 +30,36 @@ ps <- import_as_pseq(asvtab = "../../data/ASV_seqtab_tax.tab",
 ```
 Phyloseq is used as it provides a nice way of storing all the associated data in 
 one object or class. As you can see, the metadata, tree and ASV table are all
-combined here into ```ps```. Importantly, each part can also be accessed invidivually. 
+combined here into ```ps```. Importantly, each part can also be accessed individually. 
+
+## Data filtering 
+
+
+To get an idea of differences in libary sizes between samples we can plot them 
+like so:
+```{r}
+barplot(
+  sort(sample_sums(ps)),
+  horiz = TRUE,
+  las = 2,
+  xlab = NULL,
+  main = "Library sizes",
+  col = "#00A6A6"
+)
+```
+This is a good visual explanation of why normalisation is necessary, as clearly 
+there are large differences in library size between samples. 
+
+Note that this can also be useful to identify problematic samples. Samples
+with a very low read count (environment dependent but for stool ~ <10,000 reads)
+can be indicative of a poor quality sample which should be excluded.
+
+It can also often be useful to remove taxa which are rare across samples. This is not
+strictly necessary here since in our pipelinetaxa with less than 0.25% relative
+abundance are already removed during data processing.
+```{r}
+ps_filt <- prune_taxa(taxa_sums(ps) > 500, ps)
+```
 
 ## Data Normalisation 
 
@@ -99,7 +128,7 @@ Now we have calculated alpha diversity, we can merge this information with
 our metadata to generate a dataframe for plotting. 
 
 ```{r}
-meta <- smeta_to_df(ps_norm)
+meta <- meta_to_df(ps_norm)
 # merge alpha diversity df and metadata by rownames (0)
 alpha_div_meta <- merge(alpha_div, meta, by=0)
 ```
