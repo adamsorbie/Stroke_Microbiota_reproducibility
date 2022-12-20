@@ -332,12 +332,12 @@ ancom_da <- function(ps,
   res_df <- data.frame(
     # temp fix for ancom version differences
     ASV = unlist(res$res$taxon),
-    lfc = unlist(res$res$lfc_Group1),
-    se = unlist(res$res$se_Group1),
-    W = unlist(res$res$W_Group1),
-    pval = unlist(res$res$p_Group1),
-    qval = unlist(res$res$q_Group1),
-    da = unlist(res$res$diff_Group1)
+    lfc = unlist(res$res[3]),
+    se = unlist(res$res[5]),
+    W = unlist(res$res[7]),
+    pval = unlist(res$res[9]),
+    qval = unlist(res$res[11]),
+    da = unlist(res$res[13])
   ) %>%
     mutate(Log2FC = log2(exp(lfc)))
   
