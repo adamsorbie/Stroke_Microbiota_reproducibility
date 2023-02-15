@@ -95,8 +95,7 @@ colSums(otu_table(ps_norm))
 Here we will calculate three different measures of alpha-diversity:
 
 -   Species richness, or the number of observed species
-    -   This is calculated by
--   Shannon effective diversity, measuring
+-   Shannon effective diversity, measuring richness and evenness 
 -   Faith’s PD, measuring the phylogenetic component of alpha diversity
 
 The function `calc_alpha` wraps all of these calculations and only
