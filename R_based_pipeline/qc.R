@@ -3,10 +3,10 @@
 # Date: 21/11/22
 # Version 1.0.0
 
-library(dada2)
-library(optparse)
-library(parallel)
-library(ggplot2)
+if(!require("pacman")){
+  install.packages("pacman", repos = "http://cran.us.r-project.org")
+}
+pacman::p_load(dada2, optparse, parallel, ggplot2, tictoc)
 
 
 option_list = list(
