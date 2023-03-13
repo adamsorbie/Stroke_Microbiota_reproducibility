@@ -11,11 +11,11 @@
 for i in *${3};
 do
   name=$(echo "$i" | cut -f1-"$2" -d "$1")
-	mv "$i" "${name}_S1_L001_R1_001.fastq.gz"
+	mv -n "$i" "${name}_S1_L001_R1_001.fastq.gz"
 done
 # rename reverse reads
 for i in *${4};
 do
   name=$(echo "$i" | cut -f1-"$2" -d "$1")
-	mv "$i" "${name}_S1_L001_R2_001.fastq.gz"
+	mv -n "$i" "${name}_S1_L001_R2_001.fastq.gz"
 done

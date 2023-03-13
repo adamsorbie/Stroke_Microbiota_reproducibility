@@ -250,6 +250,8 @@ write(asv_fasta, paste(opt$out, "ASV_seqs.fasta", sep = "/"))
 # write feature count table 
 asv_tab <- t(seqtab_chim_abun_filt)
 row.names(asv_tab) <- sub(">", "", asv_headers)
+# remove _S1_L001 illumina format sample name from column headers
+colnames(asv_tab) <- gsub("_S1_L001", "", colnames(asv_tab))
 
 write.table(asv_tab, paste(opt$out, "ASV_seqtab.tab", sep = "/"), 
             sep = "\t", quote = F, col.names = NA)

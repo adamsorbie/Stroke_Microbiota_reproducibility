@@ -13,7 +13,9 @@ pacman::p_load(
   ANCOMBC,
   phangorn,
   GUniFrac,
-  zoo
+  zoo, 
+  mixOmics,
+  lemon
 )
 
 ######################### DATA WRANGLING #########################
@@ -127,7 +129,7 @@ import_as_pseq <- function(asvtab, mapping, tree = NULL) {
 ######################### NORMALISATION #########################
 
 # normalise data with minimum sum scaling
-transform <- function(ps, transform = "mss") {
+transform <- function(ps, transform = "mss", offset=1) {
   if (length(is(ps)) == 1 && class(ps) == "phyloseq") {
     x <- ps_to_asvtab(ps)
   }
@@ -136,13 +138,15 @@ transform <- function(ps, transform = "mss") {
     stop()
   }
   
-  if (transform %in% c("mss", "relative")) {
+  if (transform %in% c("mss", "relative", "clr")) {
     if (transform == "mss") {
       ps_t <- t(min(colSums(x)) * t(x) / colSums(x))
       
     } else if (transform == "relative") {
       ps_t <- t(100 * t(x) / colSums(x))
       
+    } else if (transform == "clr") {
+      ps_t <- logratio.transfo(t(x + offset))
     }
     otu_table(ps)@.Data <- ps_t
     
@@ -177,6 +181,8 @@ Richness <- function(x, detection = 0.5) {
   observed <- sum(x > detection)
   return(observed)
 }
+
+
 
 # calculate all alpha diversity matrices and return dataframe
 calc_alpha <- function(ps, ...) {
@@ -246,6 +252,13 @@ calc_betadiv <- function(ps, dist, ord_method = "NMDS") {
                           "Ordination" = ord)
       return(return_list)
     }
+    else if (dist %in% c("aitchison")) {
+      # aitchison is euclidean on clr-transformed data 
+      dist_metric <- distance(transform(ps,"clr"), dist="euclidean")
+      aitch <- ordinate(ps, ord_method, dist_metric)
+      return_list <- list("Distance_Matrix" = dist_metric,
+                          "Ordination" = aitch)
+    }
     else {
       print(
         "Distance metric not supported, supported metrics are; bray, unifrac, wunifrac, gunifrac"
@@ -282,6 +295,7 @@ ancom_da <- function(ps,
                      ord = NULL,
                      zero_thresh = 0.33,
                      level = NULL,
+                     format_tax=T,
                      ...) {
   if (!is.null(ord)) {
     sample_data(ps)[[group]] <-
@@ -310,12 +324,14 @@ ancom_da <- function(ps,
       )
     }
   }
+  if (format_tax == TRUE){
+    ps <- format_taxonomy(ps)
+  }
   
-  ps_f <- format_taxonomy(ps)
   
   res <-
     ancombc2(
-      data = ps_f,
+      data = ps,
       tax_level = level,
       fix_formula = formula,
       p_adj_method = "BH",
@@ -345,7 +361,7 @@ ancom_da <- function(ps,
     filter(da == T)
   
   da_asvs <- res_da$ASV
-  da_tax <- add_taxonomy_da(ps_f, da_asvs, res_da)
+  da_tax <- add_taxonomy_da(ps, da_asvs, res_da)
   
   # add group order for easier interpretation
   reference <- paste(ord[1], "vs", ord[2], sep="_")
@@ -396,6 +412,10 @@ xyform <- function (y_var, x_vars) {
   # y_var: a length-one character vector
   # x_vars: a character vector of object names
   as.formula(sprintf("%s ~ %s", y_var, paste(x_vars, collapse = " + ")))
+}
+
+round_any <- function(x, accuracy, f=ceiling) {
+  f(x/ accuracy) * accuracy
 }
 
 # plot boxplot with stats
@@ -470,7 +490,7 @@ plot_boxplot <- function(df,
     }
     
   }
-  
+
   # aes string accepts strings as column names, this code plots boxplot and adds error bars
   plot <- ggplot(
     df,
@@ -513,10 +533,27 @@ plot_boxplot <- function(df,
     scale_color_manual(values = cols) +
     rotate_x_text(angle = 45)
   
+
+  
   if (dim(stat_test)[1] == 0) {
     plot_out <- final_plot
   }
   else {
+    
+    # get ymax for calculating limits and breaks 
+    datamax <- max(df[, value_col])
+    statmax <- max(stat_df["y.position"])
+    if (datamax > 100){
+      ylim <- round_any(statmax, accuracy = 100)
+      ybreakmax <- round_any(datamax, f=floor, accuracy = 100)  
+    } else if (datamax < 100) {
+      ylim <- round_any(statmax, accuracy = 10)
+      ybreakmax <- round_any(datamax, f=floor, accuracy = 10)
+    } else if (datamax < 10) {
+      ylim <- round_any(statmax, accuracy = 1)
+      ybreakmax <- round_any(datamax, f=floor, accuracy = 1)
+    }
+    
     if (multiple_groups == T) {
       plot_out <- final_plot +
         stat_pvalue_manual(
@@ -525,7 +562,9 @@ plot_boxplot <- function(df,
           hide.ns = T,
           inherit.aes = FALSE,
           ...
-        )
+        ) + 
+        scale_y_continuous(breaks = seq(0, ybreakmax), limits = c(0, ylim)) + 
+        coord_capped_cart(left='top', expand = F)
     }
     else {
       plot_out <- final_plot +
@@ -535,7 +574,10 @@ plot_boxplot <- function(df,
           hide.ns = T,
           inherit.aes = FALSE,
           ...
-        )
+        ) + 
+        scale_y_continuous(breaks = seq(0, ybreakmax), limits = c(0, ylim)) + 
+        coord_capped_cart(left='top', expand = F) 
+        
     }
   }
   

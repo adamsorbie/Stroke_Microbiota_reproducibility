@@ -15,7 +15,13 @@
 #SBATCH --export=NONE
 #SBATCH --time=08:00:00
 
-# Pipeline parameters
+# Cluster set-up - adjust according to your own cluster configuration
+source /etc/profile.d/modules.sh
+export OMP_NUM_THREADS=16
+module load miniconda3/
+
+
+# Pipeline parameters adjust accordingly
 FILEPATH=
 OUTPUT=
 TRIM_F=
