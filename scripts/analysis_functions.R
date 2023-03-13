@@ -533,8 +533,6 @@ plot_boxplot <- function(df,
     scale_color_manual(values = cols) +
     rotate_x_text(angle = 45)
   
-
-  
   if (dim(stat_test)[1] == 0) {
     plot_out <- final_plot
   }
@@ -542,16 +540,24 @@ plot_boxplot <- function(df,
     
     # get ymax for calculating limits and breaks 
     datamax <- max(df[, value_col])
-    statmax <- max(stat_df["y.position"])
+    statmax <- max(stat_test["y.position"])
     if (datamax > 100){
-      ylim <- round_any(statmax, accuracy = 100)
-      ybreakmax <- round_any(datamax, f=floor, accuracy = 100)  
+      if (datamax < 250) {
+        ybreak <- 50
+      }
+      else {
+        ybreak <- 100
+      }
+      ylimit <- round_any(statmax, accuracy = 100)
+      ybreakmax <- round_any(datamax, accuracy = 100)  
     } else if (datamax < 100) {
-      ylim <- round_any(statmax, accuracy = 10)
-      ybreakmax <- round_any(datamax, f=floor, accuracy = 10)
+      ybreak <- 10
+      ylimit <- round_any(statmax, accuracy = 10)
+      ybreakmax <- round_any(datamax, accuracy = 10)
     } else if (datamax < 10) {
-      ylim <- round_any(statmax, accuracy = 1)
-      ybreakmax <- round_any(datamax, f=floor, accuracy = 1)
+      ybreak <- 1
+      ylimit <- round_any(statmax, accuracy = 1)
+      ybreakmax <- round_any(datamax, accuracy = 1)
     }
     
     if (multiple_groups == T) {
@@ -563,7 +569,7 @@ plot_boxplot <- function(df,
           inherit.aes = FALSE,
           ...
         ) + 
-        scale_y_continuous(breaks = seq(0, ybreakmax), limits = c(0, ylim)) + 
+        scale_y_continuous(breaks = seq(0, ybreakmax,by=ybreak), limits = c(0, ylimit)) + 
         coord_capped_cart(left='top', expand = F)
     }
     else {
@@ -575,7 +581,7 @@ plot_boxplot <- function(df,
           inherit.aes = FALSE,
           ...
         ) + 
-        scale_y_continuous(breaks = seq(0, ybreakmax), limits = c(0, ylim)) + 
+        scale_y_continuous(breaks = seq(0, ybreakmax, by=ybreak), limits = c(0, ylimit)) + 
         coord_capped_cart(left='top', expand = F) 
         
     }
