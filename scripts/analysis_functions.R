@@ -146,7 +146,9 @@ transform <- function(ps, transform = "mss", offset=1) {
       ps_t <- t(100 * t(x) / colSums(x))
       
     } else if (transform == "clr") {
-      ps_t <- logratio.transfo(t(x + offset))
+      ps_t <- t(logratio.transfo(t(x + offset), logratio = "CLR"))
+      # fix mixOmics class issue
+      class(ps_t) <- "matrix"
     }
     otu_table(ps)@.Data <- ps_t
     
