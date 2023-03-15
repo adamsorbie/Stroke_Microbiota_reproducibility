@@ -256,7 +256,7 @@ calc_betadiv <- function(ps, dist, ord_method = "NMDS") {
     }
     else if (dist %in% c("aitchison")) {
       # aitchison is euclidean on clr-transformed data 
-      dist_metric <- distance(transform(ps,"clr"), dist="euclidean")
+      dist_metric <- distance(transform(ps,"clr"), method="euclidean")
       aitch <- ordinate(ps, ord_method, dist_metric)
       return_list <- list("Distance_Matrix" = dist_metric,
                           "Ordination" = aitch)
