@@ -240,25 +240,25 @@ calc_betadiv <- function(ps, dist, ord_method = "NMDS") {
   if (ord_method %in% c("NMDS", "MDS", "PCoA")) {
     
     if (dist %in% c("unifrac", "wunifrac", "bray")) {
-      dist_metric <- distance(ps, dist)
-      ord <- ordinate(ps, ord_method, dist_metric)
-      return_list <- list("Distance_Matrix" = dist_metric,
+      dist_mat <- distance(ps, dist)
+      ord <- ordinate(ps, ord_method, dist_mat)
+      return_list <- list("Distance_Matrix" = dist_mat,
                           "Ordination" = ord)
       return(return_list)
     }
     else if (dist %in% c("gunifrac")) {
-      gu <- phyloseq_gunifrac(ps)
-      ord <- ordinate(ps, ord_method, gu)
+      dist_mat  <- phyloseq_gunifrac(ps)
+      ord <- ordinate(ps, ord_method, dist_mat)
       
-      return_list <- list("Distance_Matrix" = gu,
+      return_list <- list("Distance_Matrix" = dist_mat,
                           "Ordination" = ord)
       return(return_list)
     }
     else if (dist %in% c("aitchison")) {
       # aitchison is euclidean on clr-transformed data 
-      dist_metric <- distance(transform(ps,"clr"), method="euclidean")
-      aitch <- ordinate(ps, ord_method, dist_metric)
-      return_list <- list("Distance_Matrix" = dist_metric,
+      dist_mat  <- distance(transform(ps,"clr"), method="euclidean")
+      ord <- ordinate(ps, ord_method, dist_mat)
+      return_list <- list("Distance_Matrix" = dist_mat,
                           "Ordination" = aitch)
     }
     else {
@@ -271,7 +271,7 @@ calc_betadiv <- function(ps, dist, ord_method = "NMDS") {
     print("Ordination method not supported, supported methods are: NMDS, MDS, PCoA")
     stop()
   }
-  
+
 }
 
 
@@ -379,7 +379,7 @@ ancom_da <- function(ps,
 
 # calculate colour palettes
 calc_pal <- function(ps, group_variable) {
-  # update function to accept nonps objects
+  # update function to accept nonps objects and add support for continuous palettes
   meta <- meta_to_df(ps)
   groups <- unique(meta[, group_variable])
   
@@ -392,6 +392,7 @@ calc_pal <- function(ps, group_variable) {
 }
 
 # calculate adonis R2 and p-value
+# better NA handling here
 phyloseq_adonis <- function(ps, dist_matrix, group_variable, ...) {
   meta_df <- meta_to_df(ps)
   if (sum(is.na(meta_df[[group_variable]])) > 0) {
@@ -408,6 +409,20 @@ phyloseq_adonis <- function(ps, dist_matrix, group_variable, ...) {
   }
 }
 
+# calculate betadisper
+phyloseq_betadisper <- function(ps, dist_matrix, group_variable, ...) {
+  meta_df <- meta_to_df(ps)
+  if (sum(is.na(meta_df[[group_variable]])) > 0) {
+    print("metadata contains NAs, remove these samples with subset_samples
+          before continuing")
+    return (NULL)
+  } else {
+    
+    bd <- betadisper(dist_matrix, meta_df[[group_variable]])
+    anova_res <- anova(bd)
+    return(anova_res)
+  }
+}
 
 # create statistical formula
 xyform <- function (y_var, x_vars) {
@@ -643,6 +658,7 @@ plot_beta_div <- function(ps,
   }
   # significance
   ad <- phyloseq_adonis(ps, dist_matrix, group_variable)
+  betadisp <- phyloseq_betadisper(ps, dist_matrix, group_variable)
   
   # check sample data dimensions >1 otherwise phyloseq
   # fails to colour samples due to bug:https://github.com/joey711/phyloseq/issues/541
@@ -662,6 +678,12 @@ plot_beta_div <- function(ps,
   if (add_ellipse == TRUE){
     plot_out <- plot_out + 
       geom_polygon(stat = "ellipse", aes(fill = .data [[ group_variable ]] ), alpha = 0.3)
+  }
+  
+  # ideally this needs to be added to the main plot eventually underneath adonis 
+  if (betadisp$`Pr(>F)`[[1]] < 0.05){
+    warning("Group dispersion is not homogenous, interpret results carefully", 
+            call. = F)
   }
   
   return(plot_out)
