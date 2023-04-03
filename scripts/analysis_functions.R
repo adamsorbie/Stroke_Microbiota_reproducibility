@@ -632,8 +632,8 @@ plot_scatter <- function(df,
       axis.title.y = element_text(size = 14),
       axis.text.y = element_text(size = 12)
     ) +
-    xlab(xlabel) +
-    ylab(ylabel)
+    xlab(xlab) +
+    ylab(ylab)
   
   if (!is.null(corr.method)) {
     p <- p + stat_cor(method = corr.method, ...)
