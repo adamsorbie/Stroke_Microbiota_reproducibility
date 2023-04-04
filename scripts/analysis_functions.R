@@ -296,7 +296,7 @@ ancom_da <- function(ps,
                      group,
                      ord = NULL,
                      zero_thresh = 0.33,
-                     level = NULL,
+                     tax_level = NULL,
                      format_tax=T,
                      ...) {
   if (!is.null(ord)) {
@@ -315,8 +315,8 @@ ancom_da <- function(ps,
       "Species")
   
   # if level specified check it is valid
-  if (!is.null(level)) {
-    if (!level %in% levels) {
+  if (!is.null(tax_level)) {
+    if (!tax_level %in% levels) {
       stop(
         paste0(
           "Not a valid taxonomic rank, please specify from:",
@@ -334,7 +334,7 @@ ancom_da <- function(ps,
   res <-
     ancombc2(
       data = ps,
-      tax_level = level,
+      tax_level = tax_level,
       fix_formula = formula,
       p_adj_method = "BH",
       prv_cut = zero_thresh,
@@ -363,14 +363,17 @@ ancom_da <- function(ps,
     filter(da == T)
   
   da_asvs <- res_da$ASV
-  da_tax <- add_taxonomy_da(ps, da_asvs, res_da)
+  # add taxonomy if ASV level
+  if (is.null(tax_level)){
+    res_da <- add_taxonomy_da(ps, da_asvs, res_da)
+  }
   
   # add group order for easier interpretation
   reference <- paste(ord[1], "vs", ord[2], sep="_")
-  da_tax <- da_tax %>% 
+  res_da <- res_da %>% 
     mutate(Group_ord = reference)
   
-  return(da_tax)
+  return(res_da)
   
   
 }
