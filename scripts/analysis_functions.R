@@ -349,7 +349,7 @@ ancom_da <- function(ps,
   # add support for multiple groups here with global and pairwise tests
   res_df <- data.frame(
     # temp fix for ancom version differences
-    ASV = unlist(res$res$taxon),
+    Highest_classified = unlist(res$res$taxon),
     lfc = unlist(res$res[3]),
     se = unlist(res$res[5]),
     W = unlist(res$res[7]),
@@ -362,10 +362,12 @@ ancom_da <- function(ps,
   res_da <- res_df %>%
     filter(da == T)
   
-  da_asvs <- res_da$ASV
+  da_asvs <- res_da$Highest_classified
   # add taxonomy if ASV level
   if (is.null(tax_level)){
-    res_da <- add_taxonomy_da(ps, da_asvs, res_da)
+    if (format_tax == T){
+      res_df <- add_taxonomy_da(ps, da_asvs, res_df)
+    }
   }
   
   # add group order for easier interpretation
