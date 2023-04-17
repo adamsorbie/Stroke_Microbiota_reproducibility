@@ -72,6 +72,13 @@ checkOS <- function(){
    return(.Platform$OS.type)
 }
 
+in_path = function(ex) {
+  exit_code = suppressWarnings(system2("command", 
+                                       args = c("-v", ex), 
+                                       stdout = FALSE))
+  return(exit_code == 0)
+}
+
 ### MAIN
 
 # check all paths have trailing forward slash 
@@ -97,8 +104,8 @@ trunc_params <- opt$trunc_f
 
 # check for illegal characters in fastq filenames and exit if detected 
 illegal_chars <- c("-","#", "@", " ")
-check_fnames <- str_detect(list.files(pattern = "*.fastq.gz"), 
-                           illegal_chars)
+check_fnames <-  sapply(illegal_chars, function(x)
+  str_detect(list.files(pattern = "*.fastq.gz"), x))
 
 if (any(check_fnames == TRUE)){
   print("filenames not in illumina format see: https://support.illumina.com/help/BaseSpace_OLH_009008/Content/Source/Informatics/BS/NamingConvention_FASTQ-files-swBS.htm, 
@@ -116,8 +123,8 @@ sample.names <- sapply(strsplit(basename(fnFs), "_R1"), `[`, 1); sample.names
 
 # if sample names contain trimmed_primer suffix remove it
 if (any(str_detect(sample.names, "_trimmed_primer") == TRUE)){
-  sample.names <- gsub(sample.names, pattern = "_trimmed_primer", 
-                       replacement = "")
+  sample.names <- gsub(pattern = "_trimmed_primer", 
+                       replacement = "", x = sample.names)
 }
 
 # output path for filtered F reads
@@ -226,8 +233,6 @@ asv_taxa <- t(sapply(taxa_classify, function(x) {
 
 ## write output files
 
-# remove illumina naming convention from sample name
-colnames(seqtab_chim_abun_filt) <- gsub("_S1_L001", colnames(seqtab_chim_abun_filt))
 
 # create vector to contain headers
 asv_headers <- vector(dim(seqtab_chim_abun_filt) [2], mode = "character")
@@ -251,7 +256,7 @@ write(asv_fasta, paste(opt$out, "ASV_seqs.fasta", sep = "/"))
 asv_tab <- t(seqtab_chim_abun_filt)
 row.names(asv_tab) <- sub(">", "", asv_headers)
 # remove _S1_L001 illumina format sample name from column headers
-colnames(asv_tab) <- gsub("_S1_L001", "", colnames(asv_tab))
+colnames(asv_tab) <- gsub(pattern = "_S1_L001", replacement= "", x=colnames(asv_tab))
 
 write.table(asv_tab, paste(opt$out, "ASV_seqtab.tab", sep = "/"), 
             sep = "\t", quote = F, col.names = NA)
