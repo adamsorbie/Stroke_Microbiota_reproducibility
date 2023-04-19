@@ -260,6 +260,7 @@ calc_betadiv <- function(ps, dist, ord_method = "NMDS") {
       ord <- ordinate(ps, ord_method, dist_mat)
       return_list <- list("Distance_Matrix" = dist_mat,
                           "Ordination" = ord)
+      return(return_list)
     }
     else {
       print(
