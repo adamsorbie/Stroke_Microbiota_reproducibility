@@ -1,10 +1,10 @@
-#!/bin/bash 
+#!/bin/bash
 
-# Author: Adam Sorbie 
+# Author: Adam Sorbie
 # Date: 01/06/21
 # Version: 0.8.3
 
-# default parameters 
+# default parameters
 paired_end=true
 
 while getopts g:G:m:M:p:P: flag
@@ -25,13 +25,13 @@ done
 if ((OPTIND == 1))
 then
   echo "No options specified, exiting"
-  exit 
-fi 
+  exit
+fi
 
 echo $path
-cd $path || 
+cd $path ||
 
-echo $PWD  
+echo $PWD
 
 eval "$(conda shell.bash hook)"
 conda activate bioinfo
@@ -47,7 +47,7 @@ if [ "$paired_end" = true ]; then
     -m $min_len -M $max_len \
     -j 0 \
     -o ${sample}_trimmed_primer_R1_001.fastq.gz -p ${sample}_trimmed_primer_R2_001.fastq.gz \
-     ${sample}_S1_L001_R1_001.fastq.gz ${sample}_S1_L001_R2_001.fastq.gz \
+     ${sample}_S*_L001_R1_001.fastq.gz ${sample}_S*_L001_R2_001.fastq.gz \
      >> trimmed_primer/cutadapt_primer_trimming_stats.txt 2>&1
   done
 elif [ "$paired_end" = false ]; then
@@ -58,8 +58,8 @@ elif [ "$paired_end" = false ]; then
     -m $min_len -M $max_len \
     -j 0 \
     -o ${sample}_trimmed_primer_R1_001.fastq.gz  \
-     ${sample}_S1_L001_R1_001.fastq.gz  \
+     ${sample}_S*_L001_R1_001.fastq.gz  \
      >> trimmed_primer/cutadapt_primer_trimming_stats.txt 2>&1
   done
-fi 
+fi
 mv *trimmed_primer*.fastq.gz trimmed_primer

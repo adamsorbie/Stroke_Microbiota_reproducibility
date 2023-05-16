@@ -13,7 +13,7 @@ pacman::p_load(
   ANCOMBC,
   phangorn,
   GUniFrac,
-  zoo, 
+  zoo,
   mixOmics,
   lemon
 )
@@ -46,7 +46,7 @@ split_taxonomy <- function(asvtab) {
 format_taxonomy <- function(ps) {
   ps_tax <- taxonomy(ps) %>%
     mutate_all(na_if, "")
-  
+
   ps_tax[] <- t(na.locf(t(ps_tax))) %>%
     as.data.frame()
   # add unknown to genera which match family
@@ -63,11 +63,11 @@ format_taxonomy <- function(ps) {
                               TRUE ~ Phylum)) %>%
     mutate(ASV = rownames(ps_tax)) %>%
     mutate(Highest_classified = paste(rownames(ps_tax), Genus, sep = "; "))
-  
+
   rownames(ps_tax) <- ps_tax[, "Highest_classified"]
   taxa_names(ps) <- ps_tax[, "Highest_classified"]
   tax_table(ps) <- tax_table(as.matrix(ps_tax))
-  
+
   return(ps)
 }
 
@@ -89,11 +89,11 @@ read_tab_delim <- function(df) {
 load_phylo <- function(asvtab, taxa, mapping, tree = NULL) {
   # convert to phyloseq and return list
   phylo_asv <- otu_table(asvtab, taxa_are_rows = T)
-  
+
   phylo_tax <- tax_table(as.matrix(taxa))
-  
+
   phylo_map <- sample_data(mapping)
-  
+
   if (exists("tree")) {
     phylo_tree <- read_tree(tree)
     return(merge_phyloseq(phylo_asv, phylo_tax, phylo_tree, phylo_map))
@@ -137,28 +137,28 @@ transform <- function(ps, transform = "mss", offset=1) {
     print("not a phyloseq object, exiting")
     stop()
   }
-  
+
   if (transform %in% c("mss", "relative", "clr")) {
     if (transform == "mss") {
       ps_t <- t(min(colSums(x)) * t(x) / colSums(x))
-      
+
     } else if (transform == "relative") {
       ps_t <- t(100 * t(x) / colSums(x))
-      
+
     } else if (transform == "clr") {
       ps_t <- t(logratio.transfo(t(x + offset), logratio = "CLR"))
       # fix mixOmics class issue
       class(ps_t) <- "matrix"
     }
     otu_table(ps)@.Data <- ps_t
-    
+
     return(ps)
-    
+
   } else {
     print("Not a valid transform, exiting")
     stop()
   }
-  
+
 }
 
 
@@ -190,14 +190,14 @@ Richness <- function(x, detection = 0.5) {
 calc_alpha <- function(ps, ...) {
   mat_in <- ps_to_asvtab(ps) %>%
     t()
-  
+
   tree <- phy_tree(ps)
-  
+
   diversity <-
     setNames(data.frame(matrix(ncol = 3, nrow = nsamples(ps))),
              c("Richness", "Shannon.Effective", "Faiths.PD"))
-  rownames(diversity) <- rownames(meta_to_df(ps)) 
-  
+  rownames(diversity) <- rownames(meta_to_df(ps))
+
   diversity$Richness <- apply(mat_in, 1, Richness, ...)
   diversity$Shannon.Effective <- apply(mat_in, 1, Shannon.E)
   diversity$Faiths.PD <- Faiths(mat_in, tree)
@@ -214,14 +214,14 @@ phyloseq_gunifrac <- function(ps, asdist = TRUE) {
   # input phyloseq obj
   # returns dist matrix of GUnifrac distance which can
   # be used as input for ordinate() function
-  
+
   #extract otu table and tree
   asvtab <- t(ps_to_asvtab(ps))
   tree <- phy_tree(ps)
-  
+
   # root tree at midpoint
   rooted_tree <- midpoint(tree)
-  
+
   # calculate gunifrac
   gunifrac <- GUniFrac(asvtab, rooted_tree,
                        alpha = c(0.0, 0.5, 1.0))$unifracs
@@ -238,7 +238,7 @@ phyloseq_gunifrac <- function(ps, asdist = TRUE) {
 
 calc_betadiv <- function(ps, dist, ord_method = "NMDS") {
   if (ord_method %in% c("NMDS", "MDS", "PCoA")) {
-    
+
     if (dist %in% c("unifrac", "wunifrac", "bray")) {
       dist_mat <- distance(ps, dist)
       ord <- ordinate(ps, ord_method, dist_mat)
@@ -249,13 +249,13 @@ calc_betadiv <- function(ps, dist, ord_method = "NMDS") {
     else if (dist %in% c("gunifrac")) {
       dist_mat  <- phyloseq_gunifrac(ps)
       ord <- ordinate(ps, ord_method, dist_mat)
-      
+
       return_list <- list("Distance_Matrix" = dist_mat,
                           "Ordination" = ord)
       return(return_list)
     }
     else if (dist %in% c("aitchison")) {
-      # aitchison is euclidean on clr-transformed data 
+      # aitchison is euclidean on clr-transformed data
       dist_mat  <- distance(transform(ps,"clr"), method="euclidean")
       ord <- ordinate(ps, ord_method, dist_mat)
       return_list <- list("Distance_Matrix" = dist_mat,
@@ -279,16 +279,16 @@ calc_betadiv <- function(ps, dist, ord_method = "NMDS") {
 ######################### Differential Abundance #########################
 add_taxonomy_da <- function(ps, list_da_asvs, da_res) {
   taxonomy <- as.data.frame(tax_table(ps))
-  
+
   da_taxonomy <- taxonomy %>%
     select(Highest_classified) %>%
     filter(Highest_classified %in% list_da_asvs)
-  
+
   da_tax_out <- da_res %>%
     rownames_to_column(var = "Group") %>%
     column_to_rownames("ASV") %>%
     merge(da_taxonomy, by = 0)
-  
+
   return(da_tax_out)
 }
 
@@ -298,15 +298,15 @@ ancom_da <- function(ps,
                      ord = NULL,
                      zero_thresh = 0.33,
                      tax_level = NULL,
-                     format_tax=T,
+                     format_tax=F,
                      ...) {
   if (!is.null(ord)) {
     sample_data(ps)[[group]] <-
       factor(sample_data(ps)[[group]], levels = ord)
   } else {
-    ord <- sort(unique(sample_data(ps)[[group]])) 
+    ord <- sort(unique(sample_data(ps)[[group]]))
   }
-  
+
   levels <-
     c("Phylum",
       "Class",
@@ -314,7 +314,7 @@ ancom_da <- function(ps,
       "Family",
       "Genus",
       "Species")
-  
+
   # if level specified check it is valid
   if (!is.null(tax_level)) {
     if (!tax_level %in% levels) {
@@ -330,8 +330,8 @@ ancom_da <- function(ps,
   if (format_tax == TRUE){
     ps <- format_taxonomy(ps)
   }
-  
-  
+
+
   res <-
     ancombc2(
       data = ps,
@@ -346,7 +346,7 @@ ancom_da <- function(ps,
       global = FALSE,
       ...
     )
-  
+
   # add support for multiple groups here with global and pairwise tests
   res_df <- data.frame(
     # temp fix for ancom version differences
@@ -359,10 +359,10 @@ ancom_da <- function(ps,
     da = unlist(res$res[13])
   ) %>%
     mutate(Log2FC = log2(exp(lfc)))
-  
+
   res_da <- res_df %>%
     filter(da == T)
-  
+
   da_asvs <- res_da$Highest_classified
   # add taxonomy if ASV level
   if (is.null(tax_level)){
@@ -370,15 +370,15 @@ ancom_da <- function(ps,
       res_df <- add_taxonomy_da(ps, da_asvs, res_df)
     }
   }
-  
+
   # add group order for easier interpretation
   reference <- paste(ord[1], "vs", ord[2], sep="_")
-  res_da <- res_da %>% 
+  res_da <- res_da %>%
     mutate(Group_ord = reference)
-  
+
   return(res_da)
-  
-  
+
+
 }
 
 ######################### PLOTTING AND STATS #########################
@@ -388,7 +388,7 @@ calc_pal <- function(ps, group_variable) {
   # update function to accept nonps objects and add support for continuous palettes
   meta <- meta_to_df(ps)
   groups <- unique(meta[, group_variable])
-  
+
   if (length(groups) < 10) {
     pal <- pal_npg()(length(groups))
   }
@@ -423,7 +423,7 @@ phyloseq_betadisper <- function(ps, dist_matrix, group_variable, ...) {
           before continuing")
     return (NULL)
   } else {
-    
+
     bd <- betadisper(dist_matrix, meta_df[[group_variable]])
     anova_res <- anova(bd)
     return(anova_res)
@@ -461,14 +461,14 @@ plot_boxplot <- function(df,
     cols <- pal_npg()(length(unique(df[, variable_col])))
   }
   cols <- c(cols, "transparent")
-  
+
   if (!is.null(group.order)) {
     df[, variable_col] <-
       factor(df[, variable_col], levels = group.order)
   }
-  
+
   formula <- xyform(value_col, variable_col)
-  
+
   if (multiple_groups == TRUE) {
     if (paired == TRUE) {
       stat_variance <- df %>%
@@ -511,7 +511,7 @@ plot_boxplot <- function(df,
         add_xy_position(x = variable_col) %>%
         filter(p < 0.05)
     }
-    
+
   }
 
   # aes string accepts strings as column names, this code plots boxplot and adds error bars
@@ -555,13 +555,13 @@ plot_boxplot <- function(df,
     scale_fill_manual(values = cols) +
     scale_color_manual(values = cols) +
     rotate_x_text(angle = 45)
-  
+
   if (dim(stat_test)[1] == 0) {
     plot_out <- final_plot
   }
   else {
-    
-    # get ymax for calculating limits and breaks 
+
+    # get ymax for calculating limits and breaks
     datamax <- max(df[, value_col])
     statmax <- max(stat_test["y.position"])
     if (datamax > 100){
@@ -572,7 +572,7 @@ plot_boxplot <- function(df,
         ybreak <- 100
       }
       ylimit <- round_any(statmax, accuracy = 100)
-      ybreakmax <- round_any(datamax, accuracy = 100)  
+      ybreakmax <- round_any(datamax, accuracy = 100)
     } else if (datamax < 100) {
       ybreak <- 10
       ylimit <- round_any(statmax, accuracy = 10)
@@ -582,7 +582,7 @@ plot_boxplot <- function(df,
       ylimit <- round_any(statmax, accuracy = 1)
       ybreakmax <- round_any(datamax, accuracy = 1)
     }
-    
+
     if (multiple_groups == T) {
       plot_out <- final_plot +
         stat_pvalue_manual(
@@ -591,8 +591,8 @@ plot_boxplot <- function(df,
           hide.ns = T,
           inherit.aes = FALSE,
           ...
-        ) + 
-        scale_y_continuous(breaks = seq(0, ybreakmax,by=ybreak), limits = c(0, ylimit)) + 
+        ) +
+        scale_y_continuous(breaks = seq(0, ybreakmax,by=ybreak), limits = c(0, ylimit)) +
         coord_capped_cart(left='top', expand = F)
     }
     else {
@@ -603,13 +603,13 @@ plot_boxplot <- function(df,
           hide.ns = T,
           inherit.aes = FALSE,
           ...
-        ) + 
-        scale_y_continuous(breaks = seq(0, ybreakmax, by=ybreak), limits = c(0, ylimit)) + 
-        coord_capped_cart(left='top', expand = F) 
-        
+        ) +
+        scale_y_continuous(breaks = seq(0, ybreakmax, by=ybreak), limits = c(0, ylimit)) +
+        coord_capped_cart(left='top', expand = F)
+
     }
   }
-  
+
   return(plot_out)
 }
 
@@ -640,7 +640,7 @@ plot_scatter <- function(df,
     ) +
     xlab(xlab) +
     ylab(ylab)
-  
+
   if (!is.null(corr.method)) {
     p <- p + stat_cor(method = corr.method, ...)
     return(p)
@@ -657,15 +657,15 @@ plot_beta_div <- function(ps,
                           group_variable,
                           add_ellipse = FALSE,
                           cols = NULL) {
-  
-  
+
+
   if (is.null(cols)) {
     cols <- calc_pal(ps, group_variable)
   }
   # significance
   ad <- phyloseq_adonis(ps, dist_matrix, group_variable)
   betadisp <- phyloseq_betadisper(ps, dist_matrix, group_variable)
-  
+
   # check sample data dimensions >1 otherwise phyloseq
   # fails to colour samples due to bug:https://github.com/joey711/phyloseq/issues/541
   if (dim(sample_data(ps))[2] < 2) {
@@ -674,7 +674,7 @@ plot_beta_div <- function(ps,
   }
   plot <- plot_ordination(ps, ordination , color = group_variable)
   plot$layers[[1]] <- NULL
-  
+
   plot_out <- plot + geom_point(size = 3, alpha = 0.75) +
     theme_bw() +
     scale_fill_manual(values = cols) +
@@ -682,16 +682,16 @@ plot_beta_div <- function(ps,
     labs(caption = bquote(Adonis ~ R ^ 2 ~ .(round(ad$R2[1], 2)) ~
                             ~ p - value ~ .(ad$`Pr(>F)`[1])))
   if (add_ellipse == TRUE){
-    plot_out <- plot_out + 
+    plot_out <- plot_out +
       geom_polygon(stat = "ellipse", aes(fill = .data [[ group_variable ]] ), alpha = 0.3)
   }
-  
-  # ideally this needs to be added to the main plot eventually underneath adonis 
+
+  # ideally this needs to be added to the main plot eventually underneath adonis
   if (betadisp$`Pr(>F)`[[1]] < 0.05){
-    warning("Group dispersion is not homogenous, interpret results carefully", 
+    warning("Group dispersion is not homogenous, interpret results carefully",
             call. = F)
   }
-  
+
   return(plot_out)
 }
 
@@ -700,16 +700,16 @@ plot_da <- function(ancom_res, groups, cols = NULL) {
   if (is.null(cols)) {
     cols <- pal_npg()(length(groups))
   }
-  
+
   ancom_da_plot <- ancom_res %>%
     mutate(enriched_in = ifelse(Log2FC > 0, groups[2],
                                 groups[1]))
-  
+
   ancom_da_plot_sort <- ancom_da_plot %>%
     arrange(Log2FC) %>%
     mutate(Highest_classified = factor(Highest_classified, levels = Highest_classified))
-  
-  
+
+
   p <-
     ggplot(ancom_da_plot_sort,
            aes(x = Highest_classified, y = Log2FC, color = enriched_in)) +
@@ -730,6 +730,6 @@ plot_da <- function(ancom_res, groups, cols = NULL) {
     coord_flip() +
     geom_hline(yintercept = 0, linetype = "dotted") +
     scale_color_manual(values = cols)
-  
+
   print(p)
 }
