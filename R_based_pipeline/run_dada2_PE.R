@@ -237,12 +237,12 @@ if (opt$int_quality_control == TRUE){
 # download silva file and assign taxonomy 
 
 ############################## UNDER CONSTRUCTION 
-if (!file.exists("SILVA_SSU_r138_2019.RData")){
-  download.file(url="http://www2.decipher.codes/Classification/TrainingSets/SILVA_SSU_r138_2019.RData", 
-                destfile="SILVA_SSU_r138_2019.RData")
+if (!file.exists("SILVA_SSU_r138_2_2024.RData")){
+  download.file(url="https://www2.decipher.codes/data/Downloads/TrainingSets/SILVA_SSU_r138_2_2024.RData",
+                destfile="SILVA_SSU_r138_2_2024.RData")
 }
 
-load("SILVA_SSU_r138_2019.RData")
+load("SILVA_SSU_r138_2_2024.RData")
 seqs <- DNAStringSet(getSequences(seqtab_chim_abun_filt))
 
 taxa_classify <- IdTaxa(test=seqs, trainingSet=trainingSet, strand="both", 
