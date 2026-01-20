@@ -26,7 +26,7 @@ included the data used in this publication to demonstrate our analysis pipeline.
 ```{r}
 ps <- import_as_pseq(asvtab = "../../data/ASV_seqtab_tax.tab",
                 mapping = "../../data/Metadata-16S-sequenced_wo_ctrls.txt",
-                tree = "../../data/ASV_tree.tre")
+                tree = NULL)
 ```
 Phyloseq is used as it provides a nice way of storing all the associated data in 
 one object or class. As you can see, the metadata, tree and ASV table are all

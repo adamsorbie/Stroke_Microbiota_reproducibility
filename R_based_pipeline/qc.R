@@ -61,6 +61,9 @@ dir.create(opt$out)
 print("Plotting quality profiles")
 qc_F <- plotQualityProfile(fnFs, aggregate=TRUE)
 
+# can we use this to get cycle where mean quality drops below 20? 
+means <- rowsum(test$Score*test$Count, test$Cycle)/rowsum(test$Count, test$Cycle)
+
 ggsave(paste(opt$out,"quality_profile.pdf", sep="/"), qc_F, device = "pdf", dpi = 300)
 
 qc_R <- plotQualityProfile(fnRs, aggregate=TRUE)

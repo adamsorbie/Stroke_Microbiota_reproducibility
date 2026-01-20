@@ -18,6 +18,10 @@ pacman::p_load(
   lemon
 )
 
+stacked_bar.palette <- c("#E64B35FF", "#4DBBD5FF", "#00A087FF", "#3C5488FF", "#F39B7FFF", 
+                         "#8491B4FF", "#91D1C2FF", "#DC0000FF", "#7E6148FF", "#B09C85FF", 
+                         "#E4E9B2", "#F9A620", "#054A29", "#52414C")
+
 ######################### DATA WRANGLING #########################
 
 taxonomy <- function (ps) {
@@ -51,6 +55,13 @@ format_taxonomy <- function(ps) {
     as.data.frame()
   # add unknown to genera which match family
   ps_tax <- ps_tax %>%
+    # in case all levels are unknown
+    rowwise() %>%
+    mutate(across(Kingdom:Genus, 
+                ~ if_else(all(is.na(c_across(Kingdom:Genus))), 
+                         "Unclassified", 
+                         .))) %>%
+    ungroup() %>%
     mutate(Genus = case_when(Genus == Family ~ paste0("unknown_", Genus),
                              TRUE ~ Genus)) %>%
     mutate(Family = case_when(Family == Order ~ paste0("unknown_", Family),
@@ -62,8 +73,12 @@ format_taxonomy <- function(ps) {
     mutate(Phylum = case_when(Phylum == Kingdom ~ paste0("unknown_", Phylum),
                               TRUE ~ Phylum)) %>%
     mutate(ASV = rownames(ps_tax)) %>%
-    mutate(Highest_classified = paste(rownames(ps_tax), Genus, sep = "; "))
-
+    mutate(Highest_classified = case_when(
+    Genus == "Unclassified" ~ rownames(ps_tax), 
+    TRUE ~ paste(rownames(ps_tax), Genus, sep = "; ") 
+  )) %>% 
+      as.data.frame()
+  
   rownames(ps_tax) <- ps_tax[, "Highest_classified"]
   taxa_names(ps) <- ps_tax[, "Highest_classified"]
   tax_table(ps) <- tax_table(as.matrix(ps_tax))
@@ -81,20 +96,20 @@ read_tab_delim <- function(df) {
       header = 1,
       sep = "\t",
       comment.char = "",
-      check.names = F
+      check.names = FALSE
     )
   return(df_out)
 }
 
 load_phylo <- function(asvtab, taxa, mapping, tree = NULL) {
   # convert to phyloseq and return list
-  phylo_asv <- otu_table(asvtab, taxa_are_rows = T)
+  phylo_asv <- otu_table(asvtab, taxa_are_rows = TRUE)
 
   phylo_tax <- tax_table(as.matrix(taxa))
 
   phylo_map <- sample_data(mapping)
 
-  if (exists("tree")) {
+  if (!is.null(tree)) {
     phylo_tree <- read_tree(tree)
     return(merge_phyloseq(phylo_asv, phylo_tax, phylo_tree, phylo_map))
   }
@@ -113,8 +128,17 @@ import_as_pseq <- function(asvtab, mapping, tree = NULL) {
   taxonomy_phylo <- split_taxonomy(asvtab_taxa)
   # make sure taxa table row names match otu
   rownames(taxonomy_phylo) <- rownames(asvtab_taxa)
+
+  n_unclassified <- taxonomy_phylo %>% 
+  filter(if_all(Kingdom:Genus, is.na)) %>% 
+  nrow()
+  
+  if (n_unclassified > 0) {
+    warning(sprintf("%d ASV(s) have no taxonomic classification at any rank, run format_taxonomy to fix and ensure this is expected", n_unclassified))
+  }
+
   # use load phylo function to convert all files to phyloseq objs
-  if (exists("tree")) {
+  if (!is.null(tree)) {
     # if user wants to input a phylogenetic tree this code is called
     out <-
       load_phylo(asv_matrix, taxonomy_phylo, metadata, tree = tree)
@@ -188,10 +212,9 @@ Richness <- function(x, detection = 0.5) {
 
 # calculate all alpha diversity matrices and return dataframe
 calc_alpha <- function(ps, ...) {
+  
   mat_in <- ps_to_asvtab(ps) %>%
     t()
-
-  tree <- phy_tree(ps)
 
   diversity <-
     setNames(data.frame(matrix(ncol = 3, nrow = nsamples(ps))),
@@ -200,7 +223,14 @@ calc_alpha <- function(ps, ...) {
 
   diversity$Richness <- apply(mat_in, 1, Richness, ...)
   diversity$Shannon.Effective <- apply(mat_in, 1, Shannon.E)
-  diversity$Faiths.PD <- Faiths(mat_in, tree)
+  
+  if(is.null(ps@phy_tree)) {
+    warning("Phylogenetic tree is required for Faith's PD calculation, returning NA for this metric")
+     diversity$Faiths.PD <- NA
+  } else {
+    diversity$Faiths.PD <- Faiths(mat_in, tree)
+    tree <- phy_tree(ps)
+  }
 
   return(diversity)
 }
@@ -227,7 +257,7 @@ phyloseq_gunifrac <- function(ps, asdist = TRUE) {
                        alpha = c(0.0, 0.5, 1.0))$unifracs
   # alpha param is weight on abundant lineages, 0.5 has best power
   # so we will extract this
-  if (asdist == T) {
+  if (asdist == TRUE) {
     return(stats::as.dist(gunifrac[, , "d_0.5"]))
   }
   else{
@@ -238,7 +268,10 @@ phyloseq_gunifrac <- function(ps, asdist = TRUE) {
 
 calc_betadiv <- function(ps, dist, ord_method = "NMDS") {
   if (ord_method %in% c("NMDS", "MDS", "PCoA")) {
-
+    if (dist %in% c("unifrac", "wunifrac", "gunifrac")){
+      if(is.null(ps@phy_tree))
+      stop("Phylogenetic tree is required for UniFrac distances")
+    }
     if (dist %in% c("unifrac", "wunifrac", "bray")) {
       dist_mat <- distance(ps, dist)
       ord <- ordinate(ps, ord_method, dist_mat)
@@ -266,6 +299,7 @@ calc_betadiv <- function(ps, dist, ord_method = "NMDS") {
       print(
         "Distance metric not supported, supported metrics are; bray, unifrac, wunifrac, gunifrac"
       )
+      stop()
     }
   }
   else {
@@ -298,7 +332,7 @@ ancom_da <- function(ps,
                      ord = NULL,
                      zero_thresh = 0.33,
                      tax_level = NULL,
-                     format_tax=F,
+                     format_tax=FALSE,
                      ...) {
   if (!is.null(ord)) {
     sample_data(ps)[[group]] <-
@@ -366,7 +400,7 @@ ancom_da <- function(ps,
   da_asvs <- res_da$Highest_classified
   # add taxonomy if ASV level
   if (is.null(tax_level)){
-    if (format_tax == T){
+    if (format_tax == TRUE){
       res_df <- add_taxonomy_da(ps, da_asvs, res_df)
     }
   }
@@ -573,39 +607,39 @@ plot_boxplot <- function(df,
       }
       ylimit <- round_any(statmax, accuracy = 100)
       ybreakmax <- round_any(datamax, accuracy = 100)
-    } else if (datamax < 100) {
-      ybreak <- 10
-      ylimit <- round_any(statmax, accuracy = 10)
-      ybreakmax <- round_any(datamax, accuracy = 10)
     } else if (datamax < 10) {
       ybreak <- 1
       ylimit <- round_any(statmax, accuracy = 1)
       ybreakmax <- round_any(datamax, accuracy = 1)
+    } else if (datamax < 100) {
+      ybreak <- 10
+      ylimit <- round_any(statmax, accuracy = 10)
+      ybreakmax <- round_any(datamax, accuracy = 10)
     }
 
-    if (multiple_groups == T) {
+    if (multiple_groups == TRUE) {
       plot_out <- final_plot +
         stat_pvalue_manual(
           stat_test,
           label = "p.adj.signif",
-          hide.ns = T,
+          hide.ns = TRUE,
           inherit.aes = FALSE,
           ...
         ) +
         scale_y_continuous(breaks = seq(0, ybreakmax,by=ybreak), limits = c(0, ylimit)) +
-        coord_capped_cart(left='top', expand = F)
+        coord_capped_cart(left='top', expand = FALSE)
     }
     else {
       plot_out <- final_plot +
         stat_pvalue_manual(
           stat_test,
           label = "p.signif",
-          hide.ns = T,
+          hide.ns = TRUE,
           inherit.aes = FALSE,
           ...
         ) +
         scale_y_continuous(breaks = seq(0, ybreakmax, by=ybreak), limits = c(0, ylimit)) +
-        coord_capped_cart(left='top', expand = F)
+        coord_capped_cart(left='top', expand = FALSE)
 
     }
   }
@@ -689,7 +723,7 @@ plot_beta_div <- function(ps,
   # ideally this needs to be added to the main plot eventually underneath adonis
   if (betadisp$`Pr(>F)`[[1]] < 0.05){
     warning("Group dispersion is not homogenous, interpret results carefully",
-            call. = F)
+            call. = FALSE)
   }
 
   return(plot_out)
@@ -732,4 +766,128 @@ plot_da <- function(ancom_res, groups, cols = NULL) {
     scale_color_manual(values = cols)
 
   print(p)
+}
+
+get_top_n <- function(ps, n, level = "species", agg=F) {
+  if (level != "species" & agg == TRUE) {
+    ps <- ps %>% tax_fix %>%
+      tax_agg(rank = level)
+    ps <- ps_get(ps)
+  }
+
+  topn <- ps %>%
+    transform(transform = "relative") %>%
+    psmelt() %>%
+    group_by(OTU) %>%
+    summarise(Mean_abund = mean(Abundance)) %>%
+    # remove those with zero abundance
+    filter(Mean_abund > 0) %>% 
+    slice_max(Mean_abund, n = n) %>%
+    pull(OTU)
+  return(topn)
+}
+
+get_top_n_group <- function(ps, n, level = "species",var,  
+                            group=NULL, agg=FALSE) {
+  if (level != "species" & agg != TRUE) {
+    warning("Aggregation not set to TRUE, ensure data are aggregated at desired taxonomic level prior to running this function")
+  }
+  if (level != "species" & agg == TRUE) {
+    ps <- ps %>% tax_fix(unknowns="Unknown") %>%
+      tax_agg(rank = level)
+    ps <- ps_get(ps)
+  }
+  topn <- ps %>%
+    transform(transform = "relative") %>%
+    psmelt() %>%
+    filter({{ var }} == {{ group }}) %>% 
+    group_by(OTU) %>%
+    summarise(Mean_abund = mean(Abundance)) %>%
+    # remove those with zero abundance
+    filter(Mean_abund > 0) %>%
+    slice_max(Mean_abund, n = n) %>%
+    pull(OTU)
+  
+  return(topn)
+}
+
+#
+plot_taxonomic_comp  <- function(ps, tax_level, var, ord=NULL, n_taxa=10, 
+                                 per_group=F, groups=NULL, agg=FALSE) {
+  ranks <- c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus")
+  if (!tax_level %in% ranks){
+    stop("Provide a valid taxonomic rank")
+  }
+  var <- enquo(var)
+  
+  if (per_group == TRUE){
+    if (is.null(groups)){
+      groups <- unique(meta_to_df(ps) %>% pull(.data[[ var ]]))
+    }
+    top_tax <- purrr::map(groups, function(x) ps %>% 
+                     get_top_n_group(n = n_taxa, level = tax_level,var= .data [[ var ]],
+                                     group =x, agg=agg))
+    top_tax <- c(unique(unlist(top_tax)), "other")
+    # redefine n_taxa as in this case it reflects n across groups
+    n_taxa <- length(top_tax)
+  } else {
+    top_tax <- c(get_top_n(ps, n=n_taxa, level = tax_level), "other") 
+  }
+  
+  if (!is.null(ord)) {
+    ps <- ps %>%
+      ps_mutate(plot_var = factor(.data[[var]], levels = ord))
+  }
+   
+  if (agg == T){
+    melt_ps <- ps %>% 
+      aggregate_taxa(level = tax_level) %>% 
+      psmelt() 
+  } else {
+    melt_ps <- ps %>% 
+      psmelt()
+  }
+  
+  taxa_plot <- melt_ps %>% filter(OTU %in% top_tax)
+
+  # update ranks in case data aggregated
+  ranks <- ranks[ranks %in% colnames(melt_ps)]
+     # group rest into other
+  repl_cols <- c("OTU", ranks)
+  
+  other_plot <- melt_ps %>% filter(!OTU %in% top_tax) %>% 
+    group_by(Sample) %>% 
+    mutate(Abundance = sum(Abundance)) %>% 
+    ungroup %>% 
+    distinct(Sample, .keep_all = TRUE) %>% 
+   mutate_at(vars(repl_cols), ~ paste("other"))
+  
+  # bind dfs
+  plot_df <- bind_rows(taxa_plot, other_plot)
+  
+  taxa_pal <- c(stacked_bar.palette[1:length(top_tax)-1], "#DCDCDC")
+  names(taxa_pal) <- plot_df %>% filter(OTU %in% top_tax) %>% 
+    pull(.data[[ tax_level ]]) %>% 
+    unique()
+  
+  comp_fig <- plot_df %>%
+    ggplot(aes(fill=.data[[ tax_level ]], y=Abundance, x=Sample)) +
+    geom_bar(position="fill", stat="identity") +
+    scale_fill_manual(values = taxa_pal) +
+    facet_grid(as.formula(paste("~", var)),
+               scales = "free", space = "free") +
+    cowplot::theme_cowplot() +
+    scale_y_continuous(labels = scales::percent, expand = c(0, 0)) +
+    theme(
+      panel.background = ggplot2::element_blank(),
+      panel.grid = ggplot2::element_blank(),
+      axis.text.x = element_blank(),
+      axis.title.x = element_blank(),
+      axis.title.y = element_text(size = 22),
+      axis.text.y = element_text(size = 18),
+      axis.ticks = element_blank()
+    )
+  return_list <- list("Figure" = comp_fig, "Other" = other_plot)
+  
+  return(comp_fig)
 }
